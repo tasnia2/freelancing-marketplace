@@ -41,13 +41,15 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
-                    <a href="/" class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
-                            <i class="fas fa-handshake text-white"></i>
-                        </div>
-                        <span class="text-xl font-bold text-gray-800">FreelanceHub</span>
-                    </a>
+              <a href="/" class="flex items-center space-x-3 group">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center p-1 transition-transform duration-300 group-hover:scale-110">
+                  <img src="{{ asset('images/logo2.png') }}" 
+                 alt="Work Nest" 
+                 class="w-full h-full object-contain group-hover:rotate-12 transition-transform duration-300">
                 </div>
+                  <span class="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors duration-300">WorkNest</span>
+              </a>
+</div>
                 
                 <div class="flex items-center space-x-6">
                     <a href="#features" class="text-gray-600 hover:text-gray-900">Features</a>

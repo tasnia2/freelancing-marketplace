@@ -1,47 +1,70 @@
-<x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+@extends('layouts.guest')
 
+@section('title', 'Login - Work Nest')
+
+@section('content')
+<div>
+    <!-- Form Header -->
+    <div class="mb-8">
+        <h2 class="text-xl font-bold text-gray-800 mb-2">Welcome Back</h2>
+        <p class="text-gray-600 text-sm">Sign in to your account</p>
+    </div>
+
+    <!-- Login Form -->
     <form method="POST" action="{{ route('login') }}">
         @csrf
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+        <!-- Email -->
+        <div class="mb-5">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+            <input type="email" name="email" required autofocus
+                   class="w-full input-field"
+                   placeholder="you@example.com"
+                   value="{{ old('email') }}">
+            @error('email')
+                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+            @enderror
         </div>
 
         <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+        <div class="mb-5">
+            <div class="flex justify-between items-center mb-2">
+                <label class="text-sm font-medium text-gray-700">Password</label>
+                <a href="{{ route('password.request') }}" class="text-sm text-purple-600 hover:text-purple-800">
+                    Forgot password?
+                </a>
+            </div>
+            <input type="password" name="password" required
+                   class="w-full input-field"
+                   placeholder="••••••••">
+            @error('password')
+                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+            @enderror
         </div>
 
         <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
-                <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
+        <div class="flex items-center mb-6">
+            <input id="remember" name="remember" type="checkbox" 
+                   class="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500">
+            <label for="remember" class="ml-2 text-sm text-gray-700">
+                Keep me signed in
             </label>
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
-                </a>
-            @endif
+        <!-- Submit Button -->
+        <button type="submit" class="w-full btn-primary mb-5">
+            Sign In
+        </button>
 
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
+        <!-- Register Link -->
+        <div class="text-center">
+            <p class="text-gray-600 text-sm">
+                Don't have an account?
+                <a href="{{ route('register') }}" class="text-purple-600 font-semibold hover:underline">
+                    Create one
+                </a>
+            </p>
         </div>
     </form>
-</x-guest-layout>
+</div>
+@endsection
