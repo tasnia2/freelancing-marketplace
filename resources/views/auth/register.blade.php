@@ -42,6 +42,9 @@
         <input type="hidden" name="email" x-model="form.email">
         <input type="hidden" name="password" x-model="form.password">
         <input type="hidden" name="phone" x-model="form.phone">
+        <!-- REQUIRED: Laravel password confirmation -->
+        <input type="hidden" name="password_confirmation" x-model="form.password">
+
         <input type="hidden" name="location" x-model="form.location">
         <input type="hidden" name="bio" x-model="form.bio">
         <input type="hidden" name="role" x-model="form.role">
@@ -490,6 +493,8 @@ handleProfilePicture(event) {
             document.querySelector('input[name="name"]').value = this.form.name;
             document.querySelector('input[name="email"]').value = this.form.email;
             document.querySelector('input[name="password"]').value = this.form.password;
+            document.querySelector('input[name="password_confirmation"]').value = this.form.password;
+
             document.querySelector('input[name="phone"]').value = this.form.phone || '';
             document.querySelector('input[name="location"]').value = this.form.location || '';
             document.querySelector('input[name="bio"]').value = this.form.bio || '';
