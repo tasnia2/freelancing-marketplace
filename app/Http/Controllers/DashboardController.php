@@ -23,35 +23,43 @@ class DashboardController extends Controller
         }
     }
     
-    private function freelancerDashboard($user)
-    {
-        // Stats
-        $stats = [
-            'total_earnings' => $user->getTotalEarnings(),
-            'active_proposals' => $user->proposals()->where('status', 'pending')->count(),
-            'accepted_proposals' => $user->proposals()->where('status', 'accepted')->count(),
-            'completed_jobs' => $user->contracts()->where('status', 'completed')->count(),
-            'profile_completeness' => $this->calculateProfileCompleteness($user),
-        ];
+   private function freelancerDashboard($user)
+{
+    // Stats
+    $stats = [
+        'total_earnings' => $user->total_earnings, 
+        'active_proposals' => $user->proposals()->where('status', 'pending')->count(),
+        'accepted_proposals' => $user->proposals()->where('status', 'accepted')->count(),
+        'completed_jobs' => $user->acceptedProposals()->whereHas('job', function($q) {
+            $q->where('status', 'completed');
+        })->count(),
+        'profile_completeness' => $user->getProfileCompletenessPercentage(),
+    ];
+    
+    // Recommended jobs
+    $recommendedJobs = MarketplaceJob::where('status', 'open')
+        ->whereDoesntHave('proposals', function($query) use ($user) {
+            $query->where('freelancer_id', $user->id);
+        })
+        ->latest()
+        ->take(5)
+        ->get();
         
-        // Recommended jobs
-        $recommendedJobs = MarketplaceJob::where('status', 'open')
-            ->whereDoesntHave('proposals', function($query) use ($user) {
-                $query->where('freelancer_id', $user->id);
-            })
-            ->latest()
-            ->take(5)
-            ->get();
-            
-        // Recent proposals
-        $recentProposals = $user->proposals()
-            ->with('job')
-            ->latest()
-            ->take(5)
-            ->get();
-        
-        return view('dashboard.freelancer.index', compact('stats', 'recommendedJobs', 'recentProposals', 'user'));
-    }
+    // Recent proposals - FIXED: Removed duplicate return
+    $activities = $user->proposals()
+        ->with('job')
+        ->latest()
+        ->take(5)
+        ->get();
+
+    // Single return statement
+    return view('dashboard.freelancer.index', [
+        'stats' => $stats,
+        'recommendedJobs' => $recommendedJobs,
+        'activities' => $activities,
+        'user' => $user,
+    ]);
+}
     
     private function clientDashboard($user)
     {

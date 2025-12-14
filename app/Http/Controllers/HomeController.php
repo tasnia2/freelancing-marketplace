@@ -36,27 +36,27 @@ class HomeController extends Controller
             ->take(6)
             ->get();
 
-        // Get job categories count
-        $categories = [
-            'web-development' => MarketplaceJob::where('status', 'open')
-                ->whereJsonContains('skills', ['Web Development'])
-                ->count(),
-            'design' => MarketplaceJob::where('status', 'open')
-                ->whereJsonContains('skills', ['Design'])
-                ->count(),
-            'writing' => MarketplaceJob::where('status', 'open')
-                ->whereJsonContains('skills', ['Writing'])
-                ->count(),
-            'marketing' => MarketplaceJob::where('status', 'open')
-                ->whereJsonContains('skills', ['Marketing'])
-                ->count(),
-            'mobile' => MarketplaceJob::where('status', 'open')
-                ->whereJsonContains('skills', ['Mobile Development'])
-                ->count(),
-            'ai' => MarketplaceJob::where('status', 'open')
-                ->whereJsonContains('skills', ['AI/ML'])
-                ->count(),
-        ];
+       // Get job categories count
+$categories = [
+    'web-development' => MarketplaceJob::where('status', 'open')
+        ->whereJsonContains('skills_required', ['Web Development'])
+        ->count(),
+    'design' => MarketplaceJob::where('status', 'open')
+        ->whereJsonContains('skills_required', ['Design'])
+        ->count(),
+    'writing' => MarketplaceJob::where('status', 'open')
+        ->whereJsonContains('skills_required', ['Writing'])
+        ->count(),
+    'marketing' => MarketplaceJob::where('status', 'open')
+        ->whereJsonContains('skills_required', ['Marketing'])
+        ->count(),
+    'mobile' => MarketplaceJob::where('status', 'open')
+        ->whereJsonContains('skills_required', ['Mobile Development'])
+        ->count(),
+    'ai' => MarketplaceJob::where('status', 'open')
+        ->whereJsonContains('skills_required', ['AI/ML'])
+        ->count(),
+];
 
         // Stats for counters
         $stats = [
