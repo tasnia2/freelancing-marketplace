@@ -11,11 +11,11 @@ class Notification extends Model
 
     protected $fillable = [
         'user_id',
-        'type',        // job_posted, new_proposal, proposal_accepted, etc.
+        'type',
         'title',
         'message',
-        'data',        // JSON data like job_id, proposal_id, etc.
-        'read'         // boolean
+        'data',
+        'read'
     ];
 
     protected $casts = [
@@ -23,44 +23,63 @@ class Notification extends Model
         'read' => 'boolean'
     ];
 
-    /**
-     * Get the user that owns the notification
-     */
+    // Relationships
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Mark notification as read
-     */
-    public function markAsRead()
-    {
-        $this->update(['read' => true]);
-        return $this;
-    }
-
-    /**
-     * Scope for unread notifications
-     */
+    // Scopes
     public function scopeUnread($query)
     {
         return $query->where('read', false);
     }
 
-    /**
-     * Scope for read notifications
-     */
-    public function scopeRead($query)
+    public function scopeRecent($query, $limit = 10)
     {
-        return $query->where('read', true);
+        return $query->latest()->limit($limit);
     }
 
-    /**
-     * Scope by notification type
-     */
-    public function scopeOfType($query, $type)
+    // Accessors
+    public function getIconAttribute()
     {
-        return $query->where('type', $type);
+        return [
+            'job_posted' => 'fas fa-briefcase',
+            'new_proposal' => 'fas fa-file-alt',
+            'proposal_accepted' => 'fas fa-check-circle',
+            'proposal_rejected' => 'fas fa-times-circle',
+            'contract_created' => 'fas fa-file-contract',
+            'contract_completed' => 'fas fa-check-double',
+            'message_received' => 'fas fa-comment',
+            'payment_received' => 'fas fa-dollar-sign',
+            'system' => 'fas fa-cog'
+        ][$this->type] ?? 'fas fa-bell';
     }
+
+    public function getColorAttribute()
+    {
+        return [
+            'job_posted' => 'text-blue-600',
+            'new_proposal' => 'text-green-600',
+            'proposal_accepted' => 'text-green-600',
+            'proposal_rejected' => 'text-red-600',
+            'contract_created' => 'text-purple-600',
+            'contract_completed' => 'text-green-600',
+            'message_received' => 'text-indigo-600',
+            'payment_received' => 'text-green-600',
+            'system' => 'text-gray-600'
+        ][$this->type] ?? 'text-gray-600';
+    }
+
+    public function getTimeAgoAttribute()
+    {
+        return $this->created_at->diffForHumans();
+    }
+
+    // Mark as read
+    public function markAsRead()
+    {
+        $this->update(['read' => true]);
+    }
+    
 }
