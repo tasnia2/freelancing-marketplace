@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('type'); // job_posted, new_proposal, message, etc.
+            $table->string('type');
             $table->string('title');
             $table->text('message');
             $table->json('data')->nullable();
@@ -23,7 +23,7 @@ return new class extends Migration
             
             // Index for faster queries
             $table->index(['user_id', 'read']);
-            $table->index(['user_id', 'created_at']);
+            $table->index('type');
         });
     }
 
