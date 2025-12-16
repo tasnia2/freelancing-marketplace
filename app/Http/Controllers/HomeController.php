@@ -6,11 +6,14 @@ use App\Models\MarketplaceJob;
 use App\Models\User;
 use App\Models\JobProposal;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
     public function index()
-    {
+    {   
+    
+        
         // Get featured jobs (open status, latest first)
         $featuredJobs = MarketplaceJob::where('status', 'open')
             ->with('client')
@@ -37,26 +40,26 @@ class HomeController extends Controller
             ->get();
 
        // Get job categories count
-$categories = [
-    'web-development' => MarketplaceJob::where('status', 'open')
-        ->whereJsonContains('skills_required', ['Web Development'])
-        ->count(),
-    'design' => MarketplaceJob::where('status', 'open')
-        ->whereJsonContains('skills_required', ['Design'])
-        ->count(),
-    'writing' => MarketplaceJob::where('status', 'open')
-        ->whereJsonContains('skills_required', ['Writing'])
-        ->count(),
-    'marketing' => MarketplaceJob::where('status', 'open')
-        ->whereJsonContains('skills_required', ['Marketing'])
-        ->count(),
-    'mobile' => MarketplaceJob::where('status', 'open')
-        ->whereJsonContains('skills_required', ['Mobile Development'])
-        ->count(),
-    'ai' => MarketplaceJob::where('status', 'open')
-        ->whereJsonContains('skills_required', ['AI/ML'])
-        ->count(),
-];
+       $categories = [
+            'web-development' => MarketplaceJob::where('status', 'open')
+                ->whereJsonContains('skills_required', ['Web Development'])
+                ->count(),
+            'design' => MarketplaceJob::where('status', 'open')
+                ->whereJsonContains('skills_required', ['Design'])
+                ->count(),
+            'writing' => MarketplaceJob::where('status', 'open')
+                ->whereJsonContains('skills_required', ['Writing'])
+                ->count(),
+            'marketing' => MarketplaceJob::where('status', 'open')
+                ->whereJsonContains('skills_required', ['Marketing'])
+                ->count(),
+            'mobile' => MarketplaceJob::where('status', 'open')
+                ->whereJsonContains('skills_required', ['Mobile Development'])
+                ->count(),
+            'ai' => MarketplaceJob::where('status', 'open')
+                ->whereJsonContains('skills_required', ['AI/ML'])
+                ->count(),
+        ];
 
         // Stats for counters
         $stats = [

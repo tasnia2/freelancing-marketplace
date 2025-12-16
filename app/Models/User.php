@@ -253,9 +253,9 @@ class User extends Authenticatable
     /**
      * Get unread messages count
      */
-public function unreadMessagesCount()
-{
-    try {
+    public function unreadMessagesCount()
+    {
+      try {
         // Check if messages table exists
         if (!Schema::hasTable('messages')) {
             return 0;
@@ -268,10 +268,10 @@ public function unreadMessagesCount()
         }
         
         return $this->receivedMessages()->where('read', false)->count();
-    } catch (\Exception $e) {
+      } catch (\Exception $e) {
         return 0;
+      }
     }
-}
     
     /**
      * Get user's headline/title
@@ -331,4 +331,56 @@ public function unreadMessagesCount()
         
         return $query->count();
     }
+     public function paymentMethods()
+    {
+        return $this->hasMany(PaymentMethod::class);
+    }
+    
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+    
+    public function sentTransactions()
+    {
+        return $this->hasMany(Transaction::class, 'payer_id');
+    }
+    
+    public function portfolioItems()
+    {
+        return $this->hasMany(Portfolio::class);
+    }
+    
+    public function education()
+    {
+        return $this->hasMany(Education::class);
+    }
+    
+    public function experiences()
+    {
+        return $this->hasMany(Experience::class);
+    }
+    
+    public function certifications()
+    {
+        return $this->hasMany(Certification::class);
+    }
+    
+    // public function wallet()
+    // {
+    //     return $this->hasOne(Wallet::class);
+    // }
+    
+    
+    public function withdrawals()
+    {
+        return $this->hasMany(Withdrawal::class);
+    }
+    
+    public function disputes()
+    {
+        return $this->hasMany(Dispute::class, 'client_id')
+            ->orWhere('freelancer_id', $this->id);
+    }
+    
 }
