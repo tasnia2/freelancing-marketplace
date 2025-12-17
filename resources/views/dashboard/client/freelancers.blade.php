@@ -251,7 +251,7 @@
                     <!-- Action Buttons -->
                     <div class="p-6 pt-0">
                         <div class="grid grid-cols-2 gap-3">
-                            <a href="{{ route('client.messages.show', $freelancer) }}" 
+                            <a href="{{ route('messages.show', $freelancer) }}" 
                                class="px-4 py-2 border border-[#456882] text-[#1B3C53] dark:text-white rounded-lg hover:bg-[#E3E3E3] dark:hover:bg-[#2a3b4a] transition-all duration-300 text-center">
                                 <i class="fas fa-comment mr-2"></i>Message
                             </a>

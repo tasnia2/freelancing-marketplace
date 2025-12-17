@@ -7,19 +7,8 @@
             <h2 class="font-bold text-2xl text-gray-800 dark:text-white leading-tight">
                 Client Dashboard
             </h2>
-            <div class="flex space-x-2">
-                <a href="{{ route('client.jobs.create') }}" 
-                   class="px-4 py-2 bg-[#234C6A] text-white rounded-lg hover:bg-[#1B3C53] transition-all duration-300 flex items-center space-x-2">
-                    <i class="fas fa-plus"></i>
-                    <span>Post New Job</span>
-                </a>
-                <a href="{{ route('client.freelancers') }}" 
-                   class="px-4 py-2 border border-[#456882] text-[#1B3C53] dark:text-white rounded-lg hover:bg-[#E3E3E3] dark:hover:bg-[#2a3b4a] transition-all duration-300 flex items-center space-x-2">
-                    <i class="fas fa-search"></i>
-                    <span>Find Freelancers</span>
-                </a>
-            </div>
         </div>
+    </x-slot>
     @endsection
 
     @section('content')
