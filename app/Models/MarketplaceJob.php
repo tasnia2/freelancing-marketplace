@@ -64,7 +64,8 @@ class MarketplaceJob extends Model
 
     public function savedByUsers()
     {
-        return $this->belongsToMany(User::class, 'saved_jobs', 'marketplace_job_id', 'user_id')
+      
+    return $this->belongsToMany(User::class, 'saved_jobs', 'marketplace_job_id', 'user_id')
                     ->withTimestamps();
     }
 
