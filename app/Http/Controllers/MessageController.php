@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Events\MessageSent; // Add this if using broadcasting
 
 
 class MessageController extends Controller
@@ -18,7 +19,7 @@ class MessageController extends Controller
     {
         $user = Auth::user();
         
-        // Get recent conversations
+        // Get recent conversations - FIXED QUERY
         $conversations = Message::selectRaw('
             CASE 
                 WHEN sender_id = ? THEN receiver_id
@@ -26,10 +27,12 @@ class MessageController extends Controller
             END as other_user_id,
             MAX(created_at) as last_message_time,
             COUNT(*) as message_count,
-            SUM(CASE WHEN receiver_id = ? AND read = 0 THEN 1 ELSE 0 END) as unread_count
+            SUM(CASE WHEN receiver_id = ? AND `read` = 0 THEN 1 ELSE 0 END) as unread_count
         ', [$user->id, $user->id])
-        ->where('sender_id', $user->id)
-        ->orWhere('receiver_id', $user->id)
+        ->where(function($query) use ($user) {
+            $query->where('sender_id', $user->id)
+                  ->orWhere('receiver_id', $user->id);
+        })
         ->groupBy('other_user_id')
         ->orderBy('last_message_time', 'desc')
         ->get();
@@ -48,12 +51,20 @@ class MessageController extends Controller
                 'message_count' => $convo->message_count,
                 'last_message_time' => $convo->last_message_time
             ];
+        })->filter(function($convo) {
+            return $convo['user'] !== null; // Filter out null users
         });
         
-        // Get active jobs for filtering
-        $activeJobs = $user->isClient() 
-            ? $user->jobsPosted()->whereIn('status', ['open', 'in_progress'])->get()
-            : $user->acceptedProposals()->with('job')->get()->pluck('job');
+        // Get active jobs for filtering - Role based
+        if ($user->isClient()) {
+            $activeJobs = $user->jobsPosted()->whereIn('status', ['open', 'in_progress'])->get();
+        } else {
+            // For freelancers: jobs they've applied to or are working on
+            $activeJobs = MarketplaceJob::whereHas('proposals', function($query) use ($user) {
+                $query->where('freelancer_id', $user->id)
+                      ->whereIn('status', ['accepted', 'pending']);
+            })->whereIn('status', ['open', 'in_progress'])->get();
+        }
         
         // Get active contracts for filtering
         $activeContracts = $user->contracts()
@@ -61,12 +72,22 @@ class MessageController extends Controller
             ->with(['job', $user->isClient() ? 'freelancer' : 'client'])
             ->get();
         
-        return view('dashboard.client.messages', compact('conversations', 'activeJobs', 'activeContracts'));
+        // Return appropriate view based on role
+        if ($user->isClient()) {
+            return view('dashboard.client.messages', compact('conversations', 'activeJobs', 'activeContracts'));
+        } else {
+            return view('dashboard.freelancer.messages', compact('conversations', 'activeJobs', 'activeContracts'));
+        }
     }
     
     public function show(User $user, Request $request)
     {
         $currentUser = Auth::user();
+        
+        // Check if user is trying to message themselves
+        if ($currentUser->id === $user->id) {
+            return redirect()->route('messages.index')->with('error', 'You cannot message yourself.');
+        }
         
         // Mark all messages as read
         Message::betweenUsers($currentUser->id, $user->id)
@@ -77,26 +98,28 @@ class MessageController extends Controller
                 'read_at' => now()
             ]);
         
-        // Get messages
+        // Get messages with pagination
         $messages = Message::betweenUsers($currentUser->id, $user->id)
             ->with(['sender', 'receiver'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(50);
+            ->orderBy('created_at', 'asc')  // Change 'desc' to 'asc'
+            ->paginate(30); // Reduced from 50 for better performance
         
         // Get shared jobs
-        $sharedJobs = MarketplaceJob::where(function($query) use ($currentUser, $user) {
+        if ($currentUser->isClient()) {
+            $sharedJobs = MarketplaceJob::where(function($query) use ($currentUser, $user) {
                 $query->where('client_id', $currentUser->id)
                       ->whereHas('proposals', function($q) use ($user) {
                           $q->where('freelancer_id', $user->id);
                       });
-            })
-            ->orWhere(function($query) use ($currentUser, $user) {
+            })->get();
+        } else {
+            $sharedJobs = MarketplaceJob::where(function($query) use ($currentUser, $user) {
                 $query->where('client_id', $user->id)
                       ->whereHas('proposals', function($q) use ($currentUser) {
                           $q->where('freelancer_id', $currentUser->id);
                       });
-            })
-            ->get();
+            })->get();
+        }
         
         // Get shared contracts
         $sharedContracts = Contract::where(function($query) use ($currentUser, $user) {
@@ -110,139 +133,211 @@ class MessageController extends Controller
             ->get();
         
         if ($request->ajax()) {
+            $partialView = $currentUser->isClient() ? 'dashboard.client.partials.messages-list' : 'dashboard.freelancer.partials.messages-list';
             return response()->json([
+                'success' => true,
                 'messages' => $messages,
-                'html' => view('dashboard.client.partials.messages-list', compact('messages'))->render()
+                'html' => view($partialView, compact('messages'))->render()
             ]);
         }
         
-        return view('dashboard.client.messages-show', compact('user', 'messages', 'sharedJobs', 'sharedContracts'));
+        // Return appropriate view based on role
+        if ($currentUser->isClient()) {
+            return view('dashboard.client.messages-show', compact('user', 'messages', 'sharedJobs', 'sharedContracts'));
+        } else {
+            return view('dashboard.freelancer.messages-show', compact('user', 'messages', 'sharedJobs', 'sharedContracts'));
+        }
     }
     
     public function store(Request $request, User $user)
     {
-        $validated = $request->validate([
-            'message' => 'required|string|max:5000',
-            'job_id' => 'nullable|exists:marketplace_jobs,id',
-            'contract_id' => 'nullable|exists:contracts,id',
-            'attachments' => 'nullable|array',
-            'attachments.*' => 'file|max:5120',
-        ]);
-        
-        // Handle attachments
-        $attachments = [];
-        if ($request->hasFile('attachments')) {
-            foreach ($request->file('attachments') as $file) {
-                $path = $file->store('message_attachments', 'public');
-                $attachments[] = [
-                    'name' => $file->getClientOriginalName(),
-                    'path' => $path,
-                    'size' => $file->getSize(),
-                    'type' => $file->getMimeType(),
-                    'url' => Storage::url($path)
-                ];
+        try {
+            // Check if user is trying to message themselves
+            if (Auth::id() === $user->id) {
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'You cannot message yourself.'
+                    ], 422);
+                }
+                return redirect()->back()->with('error', 'You cannot message yourself.');
             }
-        }
-        
-        $message = Message::create([
-            'sender_id' => Auth::id(),
-            'receiver_id' => $user->id,
-            'job_id' => $validated['job_id'] ?? null,
-            'contract_id' => $validated['contract_id'] ?? null,
-            'message' => $validated['message'],
-            'attachments' => $attachments,
-            'read' => false,
-        ]);
-        
-        // Create notification for receiver
-        $user->notifications()->create([
-            'type' => 'message_received',
-            'title' => 'New Message',
-            'message' => Auth::user()->name . ' sent you a message',
-            'data' => json_encode([
-                'message_id' => $message->id,
-                'sender_id' => Auth::id(),
-                'sender_name' => Auth::user()->name
-            ]),
-            'read' => false,
-        ]);
-        
-        // Broadcast event for real-time
-        broadcast(new \App\Events\MessageSent($message))->toOthers();
-        
-        if ($request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => $message->load('sender')
+            
+            $validated = $request->validate([
+                'message' => 'required|string|max:5000',
+                'job_id' => 'nullable|exists:marketplace_jobs,id',
+                'contract_id' => 'nullable|exists:contracts,id',
+                'attachments' => 'nullable|array',
+                'attachments.*' => 'file|max:5120',
             ]);
+            
+            // Handle attachments
+            $attachments = [];
+            if ($request->hasFile('attachments')) {
+                foreach ($request->file('attachments') as $file) {
+                    $path = $file->store('message_attachments', 'public');
+                    $attachments[] = [
+                        'name' => $file->getClientOriginalName(),
+                        'path' => $path,
+                        'size' => $file->getSize(),
+                        'type' => $file->getMimeType(),
+                        'url' => Storage::url($path)
+                    ];
+                }
+            }
+            
+            $message = Message::create([
+                'sender_id' => Auth::id(),
+                'receiver_id' => $user->id,
+                'job_id' => $validated['job_id'] ?? null,
+                'contract_id' => $validated['contract_id'] ?? null,
+                'message' => $validated['message'],
+                'attachments' => $attachments,
+                'read' => false,
+            ]);
+            
+            // Create notification for receiver
+            $user->notifications()->create([
+                'type' => 'message_received',
+                'title' => 'New Message',
+                'message' => Auth::user()->name . ' sent you a message',
+                'data' => json_encode([
+                    'message_id' => $message->id,
+                    'sender_id' => Auth::id(),
+                    'sender_name' => Auth::user()->name
+                ]),
+                'read' => false,
+            ]);
+            
+            // Broadcast event for real-time (if configured)
+            if (class_exists('\App\Events\MessageSent')) {
+                broadcast(new \App\Events\MessageSent($message))->toOthers();
+            }
+            
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message->load('sender'),
+                    'html' => view('partials.message-item', ['message' => $message])->render()
+                ]);
+            }
+            
+            return redirect()->back()->with('success', 'Message sent successfully!');
+            
+        } catch (\Exception $e) {
+            \Log::error('Message sending failed: ' . $e->getMessage());
+            
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Failed to send message. Please try again.'
+                ], 500);
+            }
+            
+            return redirect()->back()->with('error', 'Failed to send message. Please try again.');
         }
-        
-        return redirect()->back()->with('success', 'Message sent!');
     }
     
     public function getUnreadCount()
     {
-        $count = Auth::user()->unreadMessagesCount();
-        return response()->json(['count' => $count]);
+        try {
+            $count = Auth::user()->unreadMessagesCount();
+            return response()->json([
+                'success' => true,
+                'count' => $count
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Get unread count failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'count' => 0
+            ]);
+        }
     }
     
     public function markAllAsRead(User $user = null)
     {
-        $query = Message::where('receiver_id', Auth::id())
-            ->unread();
-        
-        if ($user) {
-            $query->where('sender_id', $user->id);
+        try {
+            $query = Message::where('receiver_id', Auth::id())
+                ->unread();
+            
+            if ($user) {
+                $query->where('sender_id', $user->id);
+            }
+            
+            $updated = $query->update([
+                'read' => true,
+                'read_at' => now()
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'updated' => $updated
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Mark all as read failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to mark messages as read'
+            ], 500);
         }
-        
-        $query->update([
-            'read' => true,
-            'read_at' => now()
-        ]);
-        
-        return response()->json(['success' => true]);
     }
     
     public function getConversations()
     {
-        $user = Auth::user();
-        
-        $conversations = Message::selectRaw('
-            CASE 
-                WHEN sender_id = ? THEN receiver_id
-                ELSE sender_id
-            END as other_user_id,
-            MAX(created_at) as last_message_time,
-            SUM(CASE WHEN receiver_id = ? AND read = 0 THEN 1 ELSE 0 END) as unread_count
-        ', [$user->id, $user->id])
-        ->where('sender_id', $user->id)
-        ->orWhere('receiver_id', $user->id)
-        ->groupBy('other_user_id')
-        ->orderBy('last_message_time', 'desc')
-        ->limit(20)
-        ->get()
-        ->map(function($convo) use ($user) {
-            $otherUser = User::find($convo->other_user_id);
-            $lastMessage = Message::betweenUsers($user->id, $convo->other_user_id)
-                ->latest()
-                ->first();
+        try {
+            $user = Auth::user();
             
-            return [
-                'user' => [
-                    'id' => $otherUser->id,
-                    'name' => $otherUser->name,
-                    'avatar' => $otherUser->getAvatarUrl(),
-                    'role' => $otherUser->role
-                ],
-                'last_message' => $lastMessage ? [
-                    'message' => Str::limit($lastMessage->message, 50),
-                    'time' => $lastMessage->formatted_time,
-                    'is_from_me' => $lastMessage->sender_id === $user->id
-                ] : null,
-                'unread_count' => $convo->unread_count
-            ];
-        });
-        
-        return response()->json(['conversations' => $conversations]);
+            $conversations = Message::selectRaw('
+                CASE 
+                    WHEN sender_id = ? THEN receiver_id
+                    ELSE sender_id
+                END as other_user_id,
+                MAX(created_at) as last_message_time,
+                SUM(CASE WHEN receiver_id = ? AND `read` = 0 THEN 1 ELSE 0 END) as unread_count
+            ', [$user->id, $user->id])
+            ->where(function($query) use ($user) {
+                $query->where('sender_id', $user->id)
+                      ->orWhere('receiver_id', $user->id);
+            })
+            ->groupBy('other_user_id')
+            ->orderBy('last_message_time', 'desc')
+            ->limit(20)
+            ->get()
+            ->map(function($convo) use ($user) {
+                $otherUser = User::find($convo->other_user_id);
+                if (!$otherUser) return null;
+                
+                $lastMessage = Message::betweenUsers($user->id, $convo->other_user_id)
+                    ->latest()
+                    ->first();
+                
+                return [
+                    'user' => [
+                        'id' => $otherUser->id,
+                        'name' => $otherUser->name,
+                        'avatar' => $otherUser->getAvatarUrl(),
+                        'role' => $otherUser->role
+                    ],
+                    'last_message' => $lastMessage ? [
+                        'message' => Str::limit($lastMessage->message, 50),
+                        'time' => $lastMessage->formatted_time,
+                        'is_from_me' => $lastMessage->sender_id === $user->id
+                    ] : null,
+                    'unread_count' => $convo->unread_count
+                ];
+            })->filter(); // Remove null items
+            
+            return response()->json([
+                'success' => true,
+                'conversations' => $conversations->values() // Reset keys
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Get conversations failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'conversations' => []
+            ]);
+        }
     }
 }
