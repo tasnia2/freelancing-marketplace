@@ -55,7 +55,8 @@ class User extends Authenticatable
     
     public function savedJobs()
     {
-        return $this->belongsToMany(MarketplaceJob::class, 'saved_jobs');
+       return $this->belongsToMany(MarketplaceJob::class, 'saved_jobs', 'user_id', 'marketplace_job_id')
+                ->withTimestamps();
     }
 
     // For freelancers: Proposals they submitted
@@ -204,6 +205,7 @@ class User extends Authenticatable
         }
         return $this->name;
     }
+    
     
     /**
      * Check if profile is complete based on role
@@ -382,5 +384,7 @@ class User extends Authenticatable
         return $this->hasMany(Dispute::class, 'client_id')
             ->orWhere('freelancer_id', $this->id);
     }
+    // Reviews received (as reviewee)
+    
     
 }
