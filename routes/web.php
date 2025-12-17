@@ -23,9 +23,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     // Profile
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+   // Profile routes
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile')->middleware('auth');
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit')->middleware('auth');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update')->middleware('auth');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy')->middleware('auth');
     
     // Jobs (public browsing)
     Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
