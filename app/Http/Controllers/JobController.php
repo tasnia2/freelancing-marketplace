@@ -165,30 +165,36 @@ class JobController extends Controller
     }
 
     // Show Job Details
-    public function show(MarketplaceJob $job)
-    {
-        // Increment views
-        $job->incrementViews();
+public function show(MarketplaceJob $job)
+{
+    \Log::info('Showing job: ' . $job->id);
+    
+    $hasApplied = false;
+    $isSaved = false;
+    
+    if (Auth::check()) {
+        if (Auth::user()->user_type === 'freelancer') {
+            $hasApplied = $job->proposals()
+                ->where('freelancer_id', Auth::id())
+                ->exists();
+        }
         
-        $hasApplied = Auth::check() && Auth::user()->user_type === 'freelancer' 
-            ? $job->proposals()->where('freelancer_id', Auth::id())->exists()
-            : false;
-            
-        $isSaved = Auth::check() 
-            ? $job->savedByUsers()->where('user_id', Auth::id())->exists()
-            : false;
-        
-        $similarJobs = MarketplaceJob::open()
-            ->where('id', '!=', $job->id)
-            ->where(function($query) use ($job) {
-                $query->whereJsonContains('skills_required', $job->skills_required[0] ?? '')
-                      ->orWhere('experience_level', $job->experience_level);
-            })
-            ->take(4)
-            ->get();
-        
-        return view('jobs.show', compact('job', 'hasApplied', 'isSaved', 'similarJobs'));
+        $isSaved = $job->savedByUsers()
+            ->where('user_id', Auth::id())
+            ->exists();
     }
+    
+    $similarJobs = MarketplaceJob::where('status', 'open')
+        ->where('id', '!=', $job->id)
+        ->where(function($query) use ($job) {
+            $query->whereJsonContains('skills_required', $job->skills_required[0] ?? '')
+                  ->orWhere('experience_level', $job->experience_level);
+        })
+        ->take(4)
+        ->get();
+    
+    return view('jobs.show', compact('job', 'hasApplied', 'isSaved', 'similarJobs'));
+}
 
     // Apply to Job (Freelancer only)
     public function apply(Request $request, MarketplaceJob $job)
