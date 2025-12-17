@@ -141,4 +141,14 @@ class ProfileController extends Controller
         
         return view('dashboard.freelancer.profile-edit', compact('user'));
     }
+    public function show()
+{
+    $user = Auth::user();
+    
+    if ($user->role === 'freelancer') {
+        return view('dashboard.freelancer.profile-show', compact('user'));
+    }
+    
+    return view('profile.show', compact('user'));
+}
 }
