@@ -212,7 +212,7 @@
                         <i id="theme-icon" class="fas fa-moon text-gray-700 dark:text-yellow-300"></i>
                     </button>
                     
-                    @auth
+                  @auth
                         <!-- User Menu -->
                         <div class="flex items-center space-x-4">
                             @if(auth()->user()->role == 'client')
@@ -310,7 +310,7 @@
                     <div class="flex flex-col sm:flex-row gap-4">
                         @auth
                             @if(auth()->user()->role == 'client')
-                                <a href="{{ route('dashboard') }}" 
+                                <a href="{{ route('client.jobs.create') }}" 
                                    class="px-8 py-4 bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold rounded-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 flex items-center justify-center group">
                                     <i class="fas fa-plus mr-3 group-hover:rotate-90 transition-transform duration-300"></i>
                                     Post a Job
@@ -403,7 +403,7 @@
                     <h2 class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-4">Featured Jobs</h2>
                     <p class="text-gray-600 dark:text-gray-300">Latest opportunities from top clients</p>
                 </div>
-                <a href="{{ route('search') }}" class="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+                <a href="{{ route('jobs.index') }}" class="text-blue-600 dark:text-blue-400 hover:underline font-medium">
                     View all jobs <i class="fas fa-arrow-right ml-2"></i>
                 </a>
             </div>
@@ -430,7 +430,7 @@
                     }
                 @endphp
                 
-                @foreach($featuredJobs->isEmpty() ? $sampleJobs : $featuredJobs as $job)
+              @foreach($featuredJobs as $job)
                 <div class="job-card bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover-lift animate-fade-in-up" @php $delay = $loop->index * 0.1; @endphp
 style="animation-delay: {{ $delay }}s">
                     <div class="flex justify-between items-start mb-4">
@@ -451,7 +451,15 @@ style="animation-delay: {{ $delay }}s">
                         </button>
                     </div>
                     
-                    <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-2">{{ $job['title'] ?? $job->title }}</h3>
+                    <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-2">
+    @if(isset($job->id))
+        <a href="{{ route('jobs.show', $job) }}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-300">
+            {{ $job->title }}
+        </a>
+    @else
+        {{ $job['title'] ?? $job->title }}
+    @endif
+</h3>
                     <p class="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-2">
                         {{ $job['description'] ?? $job->description ?? 'Looking for a skilled professional to complete this project...' }}
                     </p>
@@ -480,23 +488,30 @@ style="animation-delay: {{ $delay }}s">
                     </div>
                     
                     <!-- Role-based Action Button -->
-                    <div class="mt-auto">
-                        @auth
-                            @if(auth()->user()->role == 'freelancer')
-                                <button class="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
-                                    <i class="fas fa-paper-plane mr-2"></i> Apply Now
-                                </button>
-                            @else
-                                <button class="w-full py-3 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
-                                    <i class="fas fa-eye mr-2"></i> View Details
-                                </button>
-                            @endif
-                        @else
-                            <a href="{{ route('login') }}" class="block w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 text-center">
-                                <i class="fas fa-sign-in-alt mr-2"></i> Login to Apply
-                            </a>
-                        @endauth
-                    </div>
+<div class="mt-auto">
+    @if(isset($job->id)) {{-- Real job from database --}}
+        <a href="{{ route('jobs.show', $job) }}" 
+           class="block w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 text-center">
+            <i class="fas fa-eye mr-2"></i> View Details
+        </a>
+    @else {{-- Sample job (fallback) --}}
+        @auth
+            @if(auth()->user()->role == 'freelancer')
+                <button class="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                    <i class="fas fa-paper-plane mr-2"></i> Apply Now
+                </button>
+            @else
+                <button class="w-full py-3 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                    <i class="fas fa-eye mr-2"></i> View Details
+                </button>
+            @endif
+        @else
+            <a href="{{ route('login') }}" class="block w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 text-center">
+                <i class="fas fa-sign-in-alt mr-2"></i> Login to Apply
+            </a>
+        @endauth
+    @endif
+</div>
                 </div>
                 @endforeach
             </div>
@@ -570,11 +585,15 @@ style="animation-delay: {{ $delay }}s">
                         
                         <div class="mt-auto">
                             @auth
-                                @if(auth()->user()->role == 'client')
-                                    <button class="w-full py-2 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 mb-2">
-                                        <i class="fas fa-envelope mr-2"></i> Message
-                                    </button>
-                                @endif
+                            
+                           @if(auth()->user()->role == 'client')
+                                  
+                                  <a href="{{ route('messages.index') }}" 
+                                 class="block w-full py-2 bg-gradient-to-r from-[#1B3C53] to-[#234C6A] text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 mb-2 text-center">
+                               <i class="fas fa-envelope mr-2"></i> Go to Messages
+                               </a>
+                               @endif
+
                             @endguest
                             <button class="w-full py-2 border-2 border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400 rounded-xl font-medium hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-300">
                                 <i class="fas fa-eye mr-2"></i> View Profile
