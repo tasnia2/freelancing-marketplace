@@ -797,7 +797,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 
                 <!-- Bottom Actions -->
-                <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl p-6 text-white hover-card">
                         <div class="flex items-center justify-between">
                             <div>
@@ -822,9 +822,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button class="w-full mt-4 py-2 bg-white text-blue-600 rounded-lg font-medium hover:bg-gray-100">
                             Take Tests
                         </button>
-                    </div>
+                    </div> -->
                     
-                    <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-6 text-white hover-card">
+                    <!-- <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-6 text-white hover-card">
                         <div class="flex items-center justify-between">
                             <div>
                                 <h3 class="font-bold text-xl">Invite Friends</h3>
@@ -835,7 +835,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button class="w-full mt-4 py-2 bg-white text-green-600 rounded-lg font-medium hover:bg-gray-100">
                             Invite Now
                         </button>
-                    </div>
+                    </div> -->
                 </div>
             </main>
         </div>
