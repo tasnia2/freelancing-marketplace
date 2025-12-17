@@ -136,40 +136,79 @@ class ClientController extends Controller
         return view('dashboard.client.jobs-create');
     }
     
-    public function storeJob(Request $request)
-    {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string|min:100',
-            'job_type' => 'required|in:hourly,fixed',
-            'budget' => 'required_if:job_type,fixed|numeric|min:10',
-            'hourly_rate' => 'required_if:job_type,hourly|numeric|min:5',
-            'hours_per_week' => 'required_if:job_type,hourly|integer|min:1|max:168',
-            'experience_level' => 'required|in:entry,intermediate,expert',
-            'project_length' => 'required|in:less_than_1_month,1_to_3_months,3_to_6_months,more_than_6_months',
-            'skills' => 'required|array|min:1',
-            'skills.*' => 'string|max:50',
-            'deadline' => 'nullable|date|after:today',
-            'is_urgent' => 'boolean',
-            'is_remote' => 'boolean',
-            'attachments' => 'nullable|array',
-            'attachments.*' => 'file|max:5120',
-        ]);
-        
-        // Handle attachments
-        $attachments = [];
-        if ($request->hasFile('attachments')) {
-            foreach ($request->file('attachments') as $file) {
-                $path = $file->store('job_attachments', 'public');
-                $attachments[] = [
-                    'name' => $file->getClientOriginalName(),
-                    'path' => $path,
-                    'size' => $file->getSize(),
-                    'type' => $file->getMimeType()
-                ];
+   public function storeJob(Request $request)
+{
+    \Log::info('=== JOB CREATION STARTED ===');
+    \Log::info('Request data:', $request->all());
+    
+    // First, let's handle the skills JSON
+    $skillsArray = [];
+    if ($request->has('skills')) {
+        // If skills comes as JSON string (from hidden input)
+        if (is_string($request->skills)) {
+            try {
+                $skillsArray = json_decode($request->skills, true);
+                \Log::info('Skills decoded from JSON:', $skillsArray);
+            } catch (\Exception $e) {
+                \Log::error('Failed to decode skills JSON: ' . $e->getMessage());
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Invalid skills format. Please add skills again.');
             }
+        } elseif (is_array($request->skills)) {
+            $skillsArray = $request->skills;
+            \Log::info('Skills received as array:', $skillsArray);
         }
-        
+    }
+    
+    \Log::info('Final skills array:', $skillsArray);
+    
+    // Validate the request
+    $validated = $request->validate([
+        'title' => 'required|string|max:255',
+        'description' => 'required|string|min:10', // Reduced from 100 for testing
+        'job_type' => 'required|in:hourly,fixed',
+        'budget' => 'required_if:job_type,fixed|numeric|min:10',
+        'hourly_rate' => 'required_if:job_type,hourly|numeric|min:5',
+        'hours_per_week' => 'required_if:job_type,hourly|integer|min:1|max:168',
+        'experience_level' => 'required|in:entry,intermediate,expert',
+        'project_length' => 'required|in:less_than_1_month,1_to_3_months,3_to_6_months,more_than_6_months',
+        'deadline' => 'nullable|date|after:today',
+        'is_urgent' => 'boolean',
+        'is_remote' => 'boolean',
+        'attachments' => 'nullable|array',
+        'attachments.*' => 'file|max:5120',
+    ]);
+    
+    \Log::info('Validation passed');
+    
+    // Manually validate skills
+    if (empty($skillsArray)) {
+        \Log::error('No skills provided');
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Please add at least one skill.')
+            ->withErrors(['skills' => 'At least one skill is required.']);
+    }
+    
+    // Handle attachments
+    $attachments = [];
+    if ($request->hasFile('attachments')) {
+        foreach ($request->file('attachments') as $file) {
+            $path = $file->store('job_attachments', 'public');
+            $attachments[] = [
+                'name' => $file->getClientOriginalName(),
+                'path' => $path,
+                'size' => $file->getSize(),
+                'type' => $file->getMimeType()
+            ];
+        }
+        \Log::info('Attachments processed:', $attachments);
+    }
+    
+    \Log::info('Creating job...');
+    
+    try {
         $job = MarketplaceJob::create([
             'client_id' => Auth::id(),
             'title' => $validated['title'],
@@ -180,13 +219,21 @@ class ClientController extends Controller
             'hours_per_week' => $validated['job_type'] === 'hourly' ? $validated['hours_per_week'] : null,
             'experience_level' => $validated['experience_level'],
             'project_length' => $validated['project_length'],
-            'skills_required' => $validated['skills'],
+            'skills_required' => $skillsArray,
             'deadline' => $validated['deadline'] ?? null,
-            'is_urgent' => $validated['is_urgent'] ?? false,
-            'is_remote' => $validated['is_remote'] ?? true,
-            'attachments' => $attachments,
+            'is_urgent' => $request->boolean('is_urgent'),
+            'is_remote' => $request->boolean('is_remote') ?? true,
+            'attachments' => !empty($attachments) ? $attachments : null,
             'status' => 'open',
         ]);
+        
+        \Log::info('Job created successfully! ID: ' . $job->id);
+        
+        // Create slug if not auto-generated
+        if (empty($job->slug)) {
+            $job->slug = \Illuminate\Support\Str::slug($job->title) . '-' . \Illuminate\Support\Str::random(6);
+            $job->save();
+        }
         
         // Notification
         Auth::user()->notifications()->create([
@@ -197,8 +244,20 @@ class ClientController extends Controller
             'read' => false,
         ]);
         
-        return redirect()->route('client.jobs')->with('success', 'Job posted successfully!');
+        \Log::info('=== JOB CREATION COMPLETED ===');
+        
+        return redirect()->route('client.jobs')
+            ->with('success', 'Job posted successfully! It is now visible to freelancers.');
+            
+    } catch (\Exception $e) {
+        \Log::error('Job creation failed: ' . $e->getMessage());
+        \Log::error('Exception trace:', $e->getTrace());
+        
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Failed to create job: ' . $e->getMessage());
     }
+}
     
     public function editJob(MarketplaceJob $job)
     {
@@ -210,32 +269,104 @@ class ClientController extends Controller
     }
     
     public function updateJob(Request $request, MarketplaceJob $job)
-    {
-        if ($job->client_id !== Auth::id()) {
-            abort(403, 'Unauthorized action.');
-        }
-        
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string|min:100',
-            'job_type' => 'required|in:hourly,fixed',
-            'budget' => 'required_if:job_type,fixed|numeric|min:10',
-            'hourly_rate' => 'required_if:job_type,hourly|numeric|min:5',
-            'experience_level' => 'required|in:entry,intermediate,expert',
-            'project_length' => 'required|in:less_than_1_month,1_to_3_months,3_to_6_months,more_than_6_months',
-            'skills' => 'required|array|min:1',
-            'skills.*' => 'string|max:50',
-            'deadline' => 'nullable|date|after:today',
-            'is_urgent' => 'boolean',
-            'is_remote' => 'boolean',
-            'status' => 'required|in:draft,open,in_progress,completed,cancelled',
-        ]);
-        
-        $job->update($validated);
-        
-        return redirect()->route('client.jobs')->with('success', 'Job updated successfully!');
+{
+    if ($job->client_id !== Auth::id()) {
+        abort(403, 'Unauthorized action.');
     }
     
+    \Log::info('=== UPDATE JOB STARTED ===');
+    \Log::info('Request data:', $request->all());
+    
+    // Handle skills - could be JSON string or array
+    $skillsArray = [];
+    if ($request->has('skills')) {
+        if (is_string($request->skills)) {
+            try {
+                $skillsArray = json_decode($request->skills, true);
+                \Log::info('Skills decoded from JSON:', $skillsArray);
+            } catch (\Exception $e) {
+                \Log::error('Failed to decode skills JSON: ' . $e->getMessage());
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Invalid skills format. Please add skills again.');
+            }
+        } elseif (is_array($request->skills)) {
+            $skillsArray = $request->skills;
+            \Log::info('Skills received as array:', $skillsArray);
+        }
+    }
+    
+    // Validate the request
+    $validatedData = $request->validate([
+        'title' => 'required|string|max:255',
+        'description' => 'required|string|min:100',
+        'job_type' => 'required|in:hourly,fixed',
+        'budget' => 'nullable|required_if:job_type,fixed|numeric|min:10',
+        'hourly_rate' => 'nullable|required_if:job_type,hourly|numeric|min:5',
+        'hours_per_week' => 'nullable|required_if:job_type,hourly|integer|min:1|max:168',
+        'experience_level' => 'required|in:entry,intermediate,expert',
+        'project_length' => 'required|in:less_than_1_month,1_to_3_months,3_to_6_months,more_than_6_months',
+        'deadline' => 'nullable|date|after:today',
+        'is_urgent' => 'boolean',
+        'is_remote' => 'boolean',
+        'status' => 'required|in:draft,open,in_progress,completed,cancelled',
+    ]);
+    
+    // Manually validate skills
+    if (empty($skillsArray)) {
+        \Log::error('No skills provided for update');
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Please add at least one skill.')
+            ->withErrors(['skills' => 'At least one skill is required.']);
+    }
+    
+    \Log::info('Validation passed');
+    
+    try {
+        // Prepare update data
+        $updateData = [
+            'title' => $validatedData['title'],
+            'description' => $validatedData['description'],
+            'job_type' => $validatedData['job_type'],
+            'experience_level' => $validatedData['experience_level'],
+            'project_length' => $validatedData['project_length'],
+            'skills_required' => $skillsArray,
+            'deadline' => $validatedData['deadline'] ?? null,
+            'is_urgent' => $request->boolean('is_urgent'),
+            'is_remote' => $request->boolean('is_remote'),
+            'status' => $validatedData['status'],
+        ];
+        
+        // Handle budget based on job type
+        if ($validatedData['job_type'] === 'fixed') {
+            $updateData['budget'] = $validatedData['budget'];
+            $updateData['hourly_rate'] = null;
+            $updateData['hours_per_week'] = null;
+        } else {
+            $updateData['hourly_rate'] = $validatedData['hourly_rate'];
+            $updateData['hours_per_week'] = $validatedData['hours_per_week'];
+            $updateData['budget'] = null;
+        }
+        
+        \Log::info('Updating job with data:', $updateData);
+        
+        $job->update($updateData);
+        
+        \Log::info('=== JOB UPDATED SUCCESSFULLY ===');
+        
+        return redirect()->route('client.jobs')
+            ->with('success', 'Job updated successfully!');
+            
+    } catch (\Exception $e) {
+        \Log::error('Job update failed: ' . $e->getMessage());
+        \Log::error('Exception trace:', $e->getTrace());
+        
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Failed to update job: ' . $e->getMessage());
+    }
+}
     public function destroyJob(MarketplaceJob $job)
     {
         if ($job->client_id !== Auth::id()) {
