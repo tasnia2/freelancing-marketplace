@@ -12,7 +12,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', config('app.name', 'Worknest - Freelancing Marketplace'))</title>
+     <title>@yield('title', config('app.name', 'WorkNest'))</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -208,7 +208,7 @@
 
         @else
             <div class="flex items-center justify-center min-h-screen p-4">
-                <!-- {{ $slot }} -->
+                @yield('content')
             </div>
         @endif
     </div>

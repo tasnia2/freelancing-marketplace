@@ -1,18 +1,7 @@
-<div x-data="{ open: false, unreadCount: {{ auth()->user()->unreadNotificationsCount() }} }" 
-     class="relative"
-     x-init="
-        // Listen for new notifications
-        Echo.private('notifications.{{ auth()->id() }}')
-            .listen('NotificationCreated', (e) => {
-                unreadCount++;
-                showNotification(e);
-            });
-     ">
+<div x-data="{ open: false, unreadCount: {{ auth()->user()->unreadNotifications()->count() ?? 0 }} }" 
+     class="relative">
     
-    <button @click="open = !open; if(unreadCount > 0) { 
-        fetch('/notifications/read-all', { method: 'POST' });
-        unreadCount = 0; 
-    }"
+    <button @click="open = !open" 
             class="relative p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
         <i class="fas fa-bell text-xl"></i>
         <span x-show="unreadCount > 0" 
@@ -36,67 +25,46 @@
         </div>
         
         <div id="notificationsList">
-            @foreach(auth()->user()->notifications()->recent(5)->get() as $notification)
-            <div class="p-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 
-                        {{ !$notification->read ? 'bg-blue-50 dark:bg-blue-900/20' : '' }}">
+            @php
+                // Simple notifications array for now
+                $notifications = auth()->user()->notifications ?? collect();
+                $recentNotifications = $notifications->take(5);
+            @endphp
+            
+            @forelse($recentNotifications as $notification)
+            <div class="p-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                 <div class="flex items-start">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center mr-3 {{ $notification->color }}">
-                        <i class="{{ $notification->icon }}"></i>
+                    <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center mr-3">
+                        <i class="fas fa-bell text-blue-500 dark:text-blue-300"></i>
                     </div>
                     <div class="flex-1">
-                        <div class="font-medium text-gray-800 dark:text-white">{{ $notification->title }}</div>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ $notification->message }}</p>
+                        <div class="font-medium text-gray-800 dark:text-white">
+                            {{ $notification->title ?? 'New Notification' }}
+                        </div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            {{ $notification->message ?? 'You have a new notification' }}
+                        </p>
                         <div class="flex justify-between items-center mt-2">
-                            <span class="text-xs text-gray-500 dark:text-gray-400">{{ $notification->time_ago }}</span>
-                            @if(!$notification->read)
-                            <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
-                            @endif
+                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                                {{ $notification->created_at->diffForHumans() ?? 'Just now' }}
+                            </span>
                         </div>
                     </div>
                 </div>
             </div>
-            @endforeach
+            @empty
+            <div class="p-8 text-center">
+                <i class="fas fa-bell-slash text-3xl text-gray-300 dark:text-gray-600 mb-3"></i>
+                <p class="text-gray-500 dark:text-gray-400">No notifications yet</p>
+            </div>
+            @endforelse
         </div>
         
         <div class="p-4 border-t border-gray-200 dark:border-gray-700">
             <a href="#"
-             class="block text-center text-sm text-[#456882] hover:text-[#1B3C53] dark:text-gray-400 dark:hover:text-white">
-
+               class="block text-center text-sm text-[#456882] hover:text-[#1B3C53] dark:text-gray-400 dark:hover:text-white">
                 View all notifications
             </a>
         </div>
     </div>
 </div>
-
-<script>
-function showNotification(data) {
-    // Create notification toast
-    const toast = document.createElement('div');
-    toast.className = 'fixed bottom-4 right-4 bg-gradient-to-r from-[#1B3C53] to-[#456882] text-white px-6 py-4 rounded-lg shadow-xl z-50 transform translate-x-full transition-transform duration-500 max-w-sm';
-    toast.innerHTML = `
-        <div class="flex items-start">
-            <div class="w-8 h-8 rounded-full flex items-center justify-center mr-3 ${data.color}">
-                <i class="${data.icon}"></i>
-            </div>
-            <div class="flex-1">
-                <div class="font-medium">${data.title}</div>
-                <p class="text-sm opacity-90 mt-1">${data.message}</p>
-            </div>
-            <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    `;
-    
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.style.transform = 'translateX(0)';
-    }, 10);
-    
-    setTimeout(() => {
-        toast.style.transform = 'translateX(100%)';
-        setTimeout(() => toast.remove(), 500);
-    }, 5000);
-}
-</script>
