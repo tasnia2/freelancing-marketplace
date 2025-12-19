@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 use Illuminate\Routing\Controller;
-
+use App\Models\JobProposal;
+use App\Models\Notification;
+use App\Models\User;
 class JobController extends Controller
 {
     public function __construct()
@@ -198,71 +200,48 @@ public function show(MarketplaceJob $job)
 
     // Apply to Job (Freelancer only)
     public function apply(Request $request, MarketplaceJob $job)
-    {
-        if (Auth::user()->user_type !== 'freelancer') {
-            return redirect()->back()->with('error', 'Only freelancers can apply to jobs.');
-        }
+{
+    // TEMPORARY DEBUG - ADD THIS
+    \Log::info('=== APPLY METHOD START ===');
+    \Log::info('Job ID: ' . $job->id);
+    \Log::info('User ID: ' . Auth::id());
+    \Log::info('Request Data: ', $request->all());
+    
+    // Your existing validation...
+    $validated = $request->validate([
+        'cover_letter' => 'required|string|min:100|max:2000',
+        'bid_amount' => 'required|numeric|min:' . ($job->job_type === 'hourly' ? 5 : 10),
+        'estimated_days' => 'required|integer|min:1|max:365',
+    ]);
+    
+    \Log::info('Validation passed');
+    
+    // Check if already applied
+    $existing = JobProposal::where('job_id', $job->id)
+        ->where('freelancer_id', Auth::id())
+        ->exists();
         
-        if ($job->proposals()->where('freelancer_id', Auth::id())->exists()) {
-            return redirect()->back()->with('error', 'You have already applied to this job.');
-        }
-        
-        $validated = $request->validate([
-            'cover_letter' => 'required|string|min:100|max:2000',
-            'bid_amount' => 'required|numeric|min:' . ($job->job_type === 'hourly' ? 5 : 10),
-            'estimated_days' => 'required|integer|min:1|max:365',
-            'attachments' => 'nullable|array',
-            'attachments.*' => 'file|max:5120',
-        ]);
-        
-        // Handle proposal attachments
-        $attachments = [];
-        if ($request->hasFile('attachments')) {
-            foreach ($request->file('attachments') as $file) {
-                $path = $file->store('proposal_attachments', 'public');
-                $attachments[] = [
-                    'name' => $file->getClientOriginalName(),
-                    'path' => $path,
-                    'size' => $file->getSize(),
-                    'type' => $file->getMimeType()
-                ];
-            }
-        }
-        
-        $proposal = $job->proposals()->create([
-            'freelancer_id' => Auth::id(),
-            'cover_letter' => $validated['cover_letter'],
-            'bid_amount' => $validated['bid_amount'],
-            'estimated_days' => $validated['estimated_days'],
-            'attachments' => $attachments,
-            'status' => 'pending',
-        ]);
-        
-        // Create notifications
-        // For freelancer
-        Auth::user()->notifications()->create([
-            'type' => 'proposal_submitted',
-            'title' => 'Proposal Submitted',
-            'message' => 'Your proposal for "' . $job->title . '" has been submitted successfully.',
-            'data' => json_encode(['job_id' => $job->id, 'proposal_id' => $proposal->id]),
-            'read' => false,
-        ]);
-        
-        // For client
-        $job->client->notifications()->create([
-            'type' => 'new_proposal',
-            'title' => 'New Proposal Received',
-            'message' => Auth::user()->name . ' has submitted a proposal for your job "' . $job->title . '".',
-            'data' => json_encode(['job_id' => $job->id, 'proposal_id' => $proposal->id, 'freelancer_id' => Auth::id()]),
-            'read' => false,
-        ]);
-        
-        // Increment proposals count
-        $job->increment('proposals_count');
-        
-        return redirect()->route('proposals.show', $proposal)
-            ->with('success', 'Proposal submitted successfully! The client will review it soon.');
+    \Log::info('Already applied: ' . ($existing ? 'YES' : 'NO'));
+    
+    if ($existing) {
+        return redirect()->back()->with('error', 'Already applied.');
     }
+    
+    // Create proposal
+    $proposal = JobProposal::create([
+        'job_id' => $job->id,
+        'freelancer_id' => Auth::id(),
+        'cover_letter' => $validated['cover_letter'],
+        'bid_amount' => $validated['bid_amount'],
+        'estimated_days' => $validated['estimated_days'],
+        'status' => 'pending',
+    ]);
+    
+    \Log::info('Proposal created ID: ' . $proposal->id);
+    \Log::info('=== APPLY METHOD END ===');
+    
+    return redirect()->back()->with('success', 'Applied!');
+}
 
     // Save/Unsave Job
   public function save(MarketplaceJob $job)
@@ -287,4 +266,49 @@ public function show(MarketplaceJob $job)
         ]);
     }
 }
+// // Add this method to JobController.php
+// public function apply(Request $request, MarketplaceJob $job)
+// {
+//     // Check if user is freelancer
+//     if (auth()->user()->role !== 'freelancer') {
+//         return redirect()->back()->with('error', 'Only freelancers can apply for jobs.');
+//     }
+    
+//     // Check if already applied
+//     $existingProposal = JobProposal::where('job_id', $job->id)
+//         ->where('freelancer_id', auth()->id())
+//         ->first();
+    
+//     if ($existingProposal) {
+//         return redirect()->back()->with('error', 'You have already applied for this job.');
+//     }
+    
+//     // Validate
+//     $validated = $request->validate([
+//         'cover_letter' => 'required|string|min:50|max:2000',
+//         'bid_amount' => 'required|numeric|min:5',
+//         'estimated_days' => 'required|integer|min:1|max:365',
+//     ]);
+    
+//     // Create proposal
+//     JobProposal::create([
+//         'job_id' => $job->id,
+//         'freelancer_id' => auth()->id(),
+//         'cover_letter' => $validated['cover_letter'],
+//         'bid_amount' => $validated['bid_amount'],
+//         'estimated_days' => $validated['estimated_days'],
+//         'status' => 'pending',
+//     ]);
+    
+//     // Create notification for client
+//     Notification::create([
+//         'user_id' => $job->client_id,
+//         'type' => 'proposal_received',
+//         'title' => 'New Proposal Received',
+//         'message' => auth()->user()->name . ' has submitted a proposal for your job: ' . $job->title,
+//         'read' => false,
+//     ]);
+    
+//     return redirect()->back()->with('success', 'Your proposal has been submitted successfully!');
+// }
 }

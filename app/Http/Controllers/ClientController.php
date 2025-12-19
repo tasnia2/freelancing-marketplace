@@ -406,6 +406,19 @@ class ClientController extends Controller
         
         return view('dashboard.client.freelancers', compact('freelancers'));
     }
+    public function jobApplicants(MarketplaceJob $job)
+{
+    if ($job->client_id !== Auth::id()) {
+        abort(403, 'Unauthorized');
+    }
+    
+    $applicants = $job->proposals()
+        ->with('freelancer')
+        ->latest()
+        ->get();
+    
+    return view('dashboard.client.applicants', compact('job', 'applicants'));
+}
     
     public function financial()
     {

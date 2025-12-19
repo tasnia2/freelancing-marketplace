@@ -243,6 +243,11 @@ class User extends Authenticatable
         
         return round(($completed / count($fields)) * 100);
     }
+    public function unreadNotifications()
+{
+    return $this->notifications()->where('read', false);
+}
+
     
     /**
      * Get unread notifications count
@@ -384,6 +389,26 @@ class User extends Authenticatable
         return $this->hasMany(Dispute::class, 'client_id')
             ->orWhere('freelancer_id', $this->id);
     }
+    public function meta()
+{
+    return $this->hasMany(UserMeta::class);
+}
+
+// Helper method to get user meta
+public function getMeta($key, $default = null)
+{
+    $meta = $this->meta()->where('key', $key)->first();
+    return $meta ? json_decode($meta->value, true) : $default;
+}
+
+// Helper method to set user meta
+public function setMeta($key, $value)
+{
+    return $this->meta()->updateOrCreate(
+        ['key' => $key],
+        ['value' => json_encode($value)]
+    );
+}
     // Reviews received (as reviewee)
     
     

@@ -149,95 +149,106 @@ class MessageController extends Controller
         }
     }
     
-    public function store(Request $request, User $user)
-    {
-        try {
-            // Check if user is trying to message themselves
-            if (Auth::id() === $user->id) {
-                if ($request->ajax()) {
-                    return response()->json([
-                        'success' => false,
-                        'error' => 'You cannot message yourself.'
-                    ], 422);
-                }
-                return redirect()->back()->with('error', 'You cannot message yourself.');
-            }
-            
-            $validated = $request->validate([
-                'message' => 'required|string|max:5000',
-                'job_id' => 'nullable|exists:marketplace_jobs,id',
-                'contract_id' => 'nullable|exists:contracts,id',
-                'attachments' => 'nullable|array',
-                'attachments.*' => 'file|max:5120',
-            ]);
-            
-            // Handle attachments
-            $attachments = [];
-            if ($request->hasFile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    $path = $file->store('message_attachments', 'public');
-                    $attachments[] = [
-                        'name' => $file->getClientOriginalName(),
-                        'path' => $path,
-                        'size' => $file->getSize(),
-                        'type' => $file->getMimeType(),
-                        'url' => Storage::url($path)
-                    ];
-                }
-            }
-            
-            $message = Message::create([
-                'sender_id' => Auth::id(),
-                'receiver_id' => $user->id,
-                'job_id' => $validated['job_id'] ?? null,
-                'contract_id' => $validated['contract_id'] ?? null,
-                'message' => $validated['message'],
-                'attachments' => $attachments,
-                'read' => false,
-            ]);
-            
-            // Create notification for receiver
-            $user->notifications()->create([
-                'type' => 'message_received',
-                'title' => 'New Message',
-                'message' => Auth::user()->name . ' sent you a message',
-                'data' => json_encode([
-                    'message_id' => $message->id,
-                    'sender_id' => Auth::id(),
-                    'sender_name' => Auth::user()->name
-                ]),
-                'read' => false,
-            ]);
-            
-            // Broadcast event for real-time (if configured)
-            if (class_exists('\App\Events\MessageSent')) {
-                broadcast(new \App\Events\MessageSent($message))->toOthers();
-            }
-            
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => $message->load('sender'),
-                    'html' => view('partials.message-item', ['message' => $message])->render()
-                ]);
-            }
-            
-            return redirect()->back()->with('success', 'Message sent successfully!');
-            
-        } catch (\Exception $e) {
-            \Log::error('Message sending failed: ' . $e->getMessage());
-            
+   public function store(Request $request, User $user)
+{
+    // Log everything for debugging
+    \Log::info('=== MESSAGE SEND ATTEMPT ===');
+    \Log::info('Auth ID: ' . Auth::id());
+    \Log::info('Receiver ID: ' . $user->id);
+    \Log::info('Is AJAX: ' . ($request->ajax() ? 'Yes' : 'No'));
+    \Log::info('Request data: ' . json_encode($request->all()));
+
+    try {
+        // Check if messaging self
+        if (Auth::id() === $user->id) {
             if ($request->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'error' => 'Failed to send message. Please try again.'
-                ], 500);
+                    'error' => 'You cannot message yourself.'
+                ], 422);
             }
-            
-            return redirect()->back()->with('error', 'Failed to send message. Please try again.');
+            return redirect()->back()->with('error', 'You cannot message yourself.');
         }
+
+        // Simple validation - remove attachments for now
+        $validated = $request->validate([
+            'message' => 'required|string|max:1000',
+            'job_id' => 'nullable|exists:marketplace_jobs,id',
+            'contract_id' => 'nullable|exists:contracts,id',
+        ]);
+
+        \Log::info('Validation passed');
+
+        // Create message WITHOUT attachments for now
+        $message = Message::create([
+            'sender_id' => Auth::id(),
+            'receiver_id' => $user->id,
+            'job_id' => $validated['job_id'] ?? null,
+            'contract_id' => $validated['contract_id'] ?? null,
+            'message' => $validated['message'],
+            'attachments' => [], // Empty for now
+            'read' => false,
+        ]);
+
+        \Log::info('Message created with ID: ' . $message->id);
+
+        // Load sender relationship
+        $message->load('sender');
+
+        // Prepare data for the partial view
+        $messageData = [
+            'id' => $message->id,
+            'message' => $message->message,
+            'created_at' => $message->created_at->toDateTimeString(),
+            'formatted_time' => $message->created_at->diffForHumans(),
+            'sender' => [
+                'id' => $message->sender->id,
+                'name' => $message->sender->name,
+                'avatar' => $message->sender->profile->avatar ?? null
+            ]
+        ];
+
+        \Log::info('Message data prepared');
+
+        // Check which partial to use
+        $partialView = auth()->$user->id->isClient() 
+            ? 'dashboard.client.partials.messages-list'
+            : 'dashboard.freelancer.partials.messages-list';
+
+        \Log::info('Using partial: ' . $partialView);
+
+        if ($request->ajax()) {
+            \Log::info('Sending JSON response');
+            return response()->json([
+                'success' => true,
+                'message' => $messageData,
+                'html' => view($partialView, ['message' => $messageData])->render()
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Message sent!');
+
+    } catch (\Exception $e) {
+        \Log::error('ERROR in store(): ' . $e->getMessage());
+        \Log::error('File: ' . $e->getFile());
+        \Log::error('Line: ' . $e->getLine());
+        \Log::error('Trace: ' . $e->getTraceAsString());
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to send message: ' . $e->getMessage(),
+                'debug' => env('APP_DEBUG') ? [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ] : null
+            ], 500);
+        }
+
+        return redirect()->back()->with('error', 'Failed to send message.');
     }
-    
+}
     public function getUnreadCount()
     {
         try {
