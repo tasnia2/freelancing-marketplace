@@ -121,7 +121,8 @@
                                   id="message-input"></textarea>
                     </div>
                     <div class="flex flex-col space-y-2">
-                        <button type="submit"
+                        <!-- ADD ID="send-button" HERE -->
+                        <button type="submit" id="send-button"
                                 class="px-6 py-3 bg-gradient-to-r from-[#456882] to-[#234C6A] text-white font-bold rounded-xl hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 flex items-center justify-center">
                             <i class="fas fa-paper-plane"></i>
                         </button>
@@ -178,48 +179,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Form submission
-    const messageForm = document.getElementById('message-form');
-    const messageInput = document.getElementById('message-input');
-    
-    messageForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        
-        try {
-            const response = await fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                }
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success) {
-                    // Clear input
-                    messageInput.value = '';
-                    fileInput.value = '';
-                    filePreview.classList.add('hidden');
-                    
-                    // Add new message to UI
-                    // (You might want to implement real-time update here)
-                    location.reload(); // Simple reload for now
-                }
-            }
-        } catch (error) {
-            console.error('Error sending message:', error);
-            alert('Failed to send message. Please try again.');
-        }
-    });
-    
     // Auto-resize textarea
+    const messageInput = document.getElementById('message-input');
     messageInput.addEventListener('input', function() {
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
     });
+    
+    // Auto-focus message input
+    messageInput.focus();
 });
 
 function clearFiles() {
@@ -227,7 +195,127 @@ function clearFiles() {
     document.getElementById('file-preview').classList.add('hidden');
 }
 
-// Auto-focus message input
-document.getElementById('message-input')?.focus();
+document.getElementById('message-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    console.log('=== MESSAGE SEND START ===');
+    
+    const formData = new FormData(this);
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const messagesContainer = document.getElementById('messages-container');
+    
+    // Check if message is empty
+    if (!messageInput.value.trim()) {
+        alert('Please enter a message');
+        return;
+    }
+    
+    // Disable button and show loading
+    sendButton.disabled = true;
+    const originalButtonHTML = sendButton.innerHTML;
+    sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    try {
+        console.log('Sending to:', this.action);
+        
+        const response = await fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        });
+        
+        console.log('Response status:', response.status);
+        
+        const responseText = await response.text();
+        console.log('Raw response text:', responseText);
+        
+        let data;
+        try {
+            data = JSON.parse(responseText);
+            console.log('Parsed JSON:', data);
+        } catch (parseError) {
+            console.error('JSON parse error:', parseError);
+            throw new Error('Server returned invalid JSON');
+        }
+        
+        if (data.success && data.html) {
+            console.log('✅ Success! HTML received');
+            console.log('HTML content:', data.html);
+            console.log('HTML length:', data.html.length);
+            
+            // Create temporary container
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = data.html.trim();
+            
+            console.log('Temp div children:', tempDiv.children.length);
+            
+            // Look for message item
+            let messageElement = tempDiv.querySelector('.message-item');
+            if (!messageElement) {
+                console.log('No .message-item class, using first child');
+                messageElement = tempDiv.firstElementChild;
+            }
+            
+            if (messageElement) {
+                console.log('Found message element:', messageElement);
+                console.log('Message element HTML:', messageElement.outerHTML);
+                
+                // Add animation
+                messageElement.style.opacity = '0';
+                messageElement.style.transform = 'translateY(10px)';
+                
+                // Add to container
+                messagesContainer.appendChild(messageElement);
+                console.log('✅ Message added to container');
+                
+                // Animate in
+                setTimeout(() => {
+                    messageElement.style.transition = 'all 0.3s ease';
+                    messageElement.style.opacity = '1';
+                    messageElement.style.transform = 'translateY(0)';
+                }, 10);
+                
+                // Scroll to bottom
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                console.log('✅ Scrolled to bottom');
+                
+                // Clear form
+                messageInput.value = '';
+                messageInput.style.height = 'auto';
+                
+                // Clear attachments
+                document.getElementById('attachments').value = '';
+                document.getElementById('file-preview').classList.add('hidden');
+                
+                // Show success
+                showToast('Message sent successfully!', 'success');
+                
+            } else {
+                console.error('❌ No message element found in HTML');
+                console.error('Temp div innerHTML:', tempDiv.innerHTML);
+                showToast('Message sent but could not display it', 'warning');
+            }
+            
+        } else {
+            console.error('❌ Server returned error:', data);
+            const errorMsg = data.error || 'Failed to send message';
+            showToast(errorMsg, 'error');
+        }
+        
+    } catch (error) {
+        console.error('❌ AJAX Error:', error);
+        showToast('Error: ' + error.message, 'error');
+        
+    } finally {
+        // Re-enable button
+        sendButton.disabled = false;
+        sendButton.innerHTML = originalButtonHTML;
+        console.log('=== MESSAGE SEND END ===');
+    }
+});
 </script>
 @endpush
