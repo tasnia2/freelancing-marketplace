@@ -77,28 +77,41 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
             <!-- Stats Overview -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                <a href="{{ route('client.contracts') }}?status=all" 
-                   class="p-4 bg-white dark:bg-gray-800 rounded-xl border {{ $status === 'all' ? 'border-[#234C6A]' : 'border-gray-200 dark:border-gray-700' }} hover:border-[#456882] transition-all duration-300 text-center hover-card">
-                    <div class="text-2xl font-bold text-gray-800 dark:text-white">{{ $contractStats['all'] }}</div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">All Contracts</div>
-                </a>
-                <a href="{{ route('client.contracts') }}?status=draft" 
-                   class="p-4 bg-white dark:bg-gray-800 rounded-xl border {{ $status === 'draft' ? 'border-blue-500' : 'border-gray-200 dark:border-gray-700' }} hover:border-blue-500 transition-all duration-300 text-center hover-card">
-                    <div class="text-2xl font-bold text-gray-800 dark:text-white">{{ $contractStats['draft'] }}</div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">Draft</div>
-                </a>
-                <a href="{{ route('client.contracts') }}?status=active" 
-                   class="p-4 bg-white dark:bg-gray-800 rounded-xl border {{ $status === 'active' ? 'border-green-500' : 'border-gray-200 dark:border-gray-700' }} hover:border-green-500 transition-all duration-300 text-center hover-card">
-                    <div class="text-2xl font-bold text-gray-800 dark:text-white">{{ $contractStats['active'] }}</div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">Active</div>
-                </a>
-                <a href="{{ route('client.contracts') }}?status=completed" 
-                   class="p-4 bg-white dark:bg-gray-800 rounded-xl border {{ $status === 'completed' ? 'border-purple-500' : 'border-gray-200 dark:border-gray-700' }} hover:border-purple-500 transition-all duration-300 text-center hover-card">
-                    <div class="text-2xl font-bold text-gray-800 dark:text-white">{{ $contractStats['completed'] }}</div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">Completed</div>
-                </a>
-            </div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+    @php
+        $currentStatus = request()->get('status', 'all');
+    @endphp
+    
+    <a href="{{ route('client.contracts') }}?status=all" 
+       class="p-4 bg-white dark:bg-gray-800 rounded-xl border {{ $currentStatus === 'all' ? 'border-[#234C6A]' : 'border-gray-200 dark:border-gray-700' }}">
+        <div class="text-2xl font-bold text-[#234C6A] dark:text-[#456882]">{{ $contracts->total() }}</div>
+        <div class="text-gray-600 dark:text-gray-400">Total</div>
+    </a>
+    
+    <a href="{{ route('client.contracts') }}?status=active" 
+       class="p-4 bg-white dark:bg-gray-800 rounded-xl border {{ $currentStatus === 'active' ? 'border-green-500' : 'border-gray-200 dark:border-gray-700' }}">
+        <div class="text-2xl font-bold text-green-600 dark:text-green-400">
+            {{ $contracts->where('status', 'active')->count() }}
+        </div>
+        <div class="text-gray-600 dark:text-gray-400">Active</div>
+    </a>
+    
+    <a href="{{ route('client.contracts') }}?status=completed" 
+       class="p-4 bg-white dark:bg-gray-800 rounded-xl border {{ $currentStatus === 'completed' ? 'border-blue-500' : 'border-gray-200 dark:border-gray-700' }}">
+        <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+            {{ $contracts->where('status', 'completed')->count() }}
+        </div>
+        <div class="text-gray-600 dark:text-gray-400">Completed</div>
+    </a>
+    
+    <a href="{{ route('client.contracts') }}?status=draft" 
+       class="p-4 bg-white dark:bg-gray-800 rounded-xl border {{ $currentStatus === 'draft' ? 'border-yellow-500' : 'border-gray-200 dark:border-gray-700' }}">
+        <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+            {{ $contracts->where('status', 'draft')->count() }}
+        </div>
+        <div class="text-gray-600 dark:text-gray-400">Draft</div>
+    </a>
+</div>
 
             <!-- Contracts Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

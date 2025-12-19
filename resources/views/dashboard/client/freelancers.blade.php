@@ -204,17 +204,20 @@
                             <div>
                                 <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Skills</h4>
                                 <div class="flex flex-wrap gap-2">
-                                    @if($freelancer->profile && $freelancer->profile->skills)
-                                        @foreach(array_slice(json_decode($freelancer->profile->skills, true), 0, 4) as $skill)
-                                            <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full text-sm">
-                                                {{ $skill }}
-                                            </span>
-                                        @endforeach
-                                        @if(count(json_decode($freelancer->profile->skills, true)) > 4)
-                                            <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full text-sm">
-                                                +{{ count(json_decode($freelancer->profile->skills, true)) - 4 }} more
-                                            </span>
-                                        @endif
+                                    {{-- Line 208 fix --}}
+@if($freelancer->profile && !empty($freelancer->profile->skills))
+    @php
+        $skills = is_array($freelancer->profile->skills) 
+            ? $freelancer->profile->skills 
+            : json_decode($freelancer->profile->skills, true);
+        $skills = $skills ?? [];
+    @endphp
+    
+    @foreach(array_slice($skills, 0, 4) as $skill)
+        <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full text-sm">
+            {{ is_array($skill) ? $skill['name'] ?? $skill : $skill }}
+        </span>
+    @endforeach
                                     @else
                                         <span class="text-gray-400 italic">No skills listed</span>
                                     @endif

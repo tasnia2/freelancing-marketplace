@@ -1,24 +1,86 @@
 @extends('layouts.client')
 @section('title', 'Settings')
-    @section('header')
-        <div class="flex justify-between items-center">
-            <div>
-                <h2 class="font-bold text-2xl text-gray-800 dark:text-white leading-tight">
-                    Settings
-                </h2>
-                <p class="text-gray-600 dark:text-gray-400 mt-1">
-                    Manage your account and preferences
-                </p>
-            </div>
-            <div class="flex items-center space-x-3">
-                <button onclick="saveAllSettings()"
-                        class="px-4 py-2 bg-gradient-to-r from-[#1B3C53] to-[#234C6A] text-white rounded-lg hover:from-[#234C6A] hover:to-[#456882] transition-all duration-300 flex items-center space-x-2">
-                    <i class="fas fa-save"></i>
-                    <span>Save All Changes</span>
-                </button>
-            </div>
-        </div>
-    @endsection
+   <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Page Title | WorkNest</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        :root {
+            --primary-dark: #1B3C53;
+            --primary: #234C6A;
+            --primary-light: #456882;
+            --light-bg: #E3E3E3;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Glass effect for navbar */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .dark .glass-effect {
+            background: rgba(31, 41, 55, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Gradient border */
+        .gradient-border {
+            position: relative;
+            background: linear-gradient(white, white) padding-box,
+                        linear-gradient(135deg, #1B3C53, #456882) border-box;
+            border: 2px solid transparent;
+        }
+
+        .dark .gradient-border {
+            background: linear-gradient(#1f2937, #1f2937) padding-box,
+                        linear-gradient(135deg, #1B3C53, #456882) border-box;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #1B3C53, #456882);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #234C6A, #3A5A72);
+        }
+    </style>
+</head>
     
     @section('content')
 
