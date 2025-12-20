@@ -264,10 +264,10 @@
 
                 <!-- CTA Buttons -->
                 <div class="flex flex-col sm:flex-row gap-4">
-                    <a href="{{ route('register', ['role' => 'client']) }}"
+                    <!-- <a href="{{ route('register', ['role' => 'client']) }}"
                        class="px-8 py-4 bg-gradient-to-r from-[#1B3C53] to-[#234C6A] text-white font-bold rounded-xl hover:shadow-2xl transition">
                         Hire Talent
-                    </a>
+                    </a> -->
 
                     <a href="{{ route('register', ['role' => 'freelancer']) }}"
                        class="px-8 py-4 bg-white/15 backdrop-blur text-white font-bold rounded-xl border border-white/30 hover:bg-white/25 transition">

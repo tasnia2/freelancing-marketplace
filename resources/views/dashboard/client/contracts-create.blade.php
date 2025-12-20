@@ -72,9 +72,9 @@
                                     </div>
                                     <div class="text-right">
                                         <span class="px-3 py-1 rounded-full text-sm font-medium 
-                                            {{ $contract->status == 'active' ? 'bg-green-100 text-green-800' : 
-                                               $contract->status == 'completed' ? 'bg-blue-100 text-blue-800' : 
-                                               'bg-gray-100 text-gray-800' }}">
+    {{ $contract->status == 'active' ? 'bg-green-100 text-green-800' : 
+       ($contract->status == 'completed' ? 'bg-blue-100 text-blue-800' : 
+       'bg-gray-100 text-gray-800') }}">
                                             {{ ucfirst($contract->status) }}
                                         </span>
                                         <div class="mt-2 text-sm text-gray-500">
