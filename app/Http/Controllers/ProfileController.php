@@ -151,4 +151,19 @@ class ProfileController extends Controller
     
     return view('profile.show', compact('user'));
 }
+public function publicShow(User $user)
+{
+    if ($user->role !== 'freelancer') {
+        abort(404, 'Profile not found');
+    }
+    
+    // DO NOT load experiences - it's causing the error
+    // $user->load(['skills', 'portfolio', 'reviews.client']); // REMOVE THIS
+    
+    // Just pass the user without loading problematic relationships
+    return view('profile.freelancer.public-show', [
+        'freelancer' => $user,
+        'isPublicView' => true
+    ]);
+}
 }
