@@ -1,59 +1,198 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Freelance Job Marketplace System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A web-based Freelance Job Marketplace built with **Laravel** and **MySQL**, designed to connect **clients** and **freelancers** through a secure, role-based platform.  
+The system allows clients to post jobs, freelancers to submit proposals, and both parties to collaborate through contracts, messaging, and reviews.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 📌 Project Overview
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+The Freelance Job Marketplace System is a full-stack web application developed as an academic and practical project.  
+It demonstrates the use of **MVC architecture**, **relational database design**, and **secure web application practices** in a real-world freelancing scenario.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Key Objectives
+- Provide a structured job marketplace for clients and freelancers
+- Demonstrate Laravel MVC architecture and Eloquent ORM
+- Implement role-based access control
+- Support real-world freelancing workflows (job posting → proposal → contract → review)
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## 🛠️ Technology Stack
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+| Layer | Technology |
+|-----|-----------|
+| Backend | Laravel (PHP) |
+| Frontend | HTML, CSS, JavaScript, Blade |
+| Database | MySQL |
+| Authentication | Laravel Auth / Breeze |
+| Architecture | MVC |
+| API | RESTful |
+| Security | Middleware, CSRF, Validation |
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 👥 User Roles
 
-### Premium Partners
+### Client
+- Post, edit, and delete jobs
+- View freelancer proposals
+- Accept or reject proposals
+- Create and manage contracts
+- Communicate with freelancers
+- Review completed work
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Freelancer
+- Browse and search jobs
+- Apply for jobs (submit proposals)
+- Save jobs for later
+- Manage active contracts
+- Communicate with clients
+- Maintain profile and portfolio
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## ✨ Core Features
 
-## Code of Conduct
+- User authentication and role-based access
+- Job marketplace with search and categories
+- Proposal submission and management
+- Contract and milestone tracking
+- Real-time-style messaging system
+- Saved jobs functionality
+- Reviews and ratings
+- Notification system
+- Profile and settings management
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+## 🧱 System Architecture
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+The system follows the **Model–View–Controller (MVC)** pattern:
 
-## License
+- **Models:** Handle data and database relationships (Eloquent ORM)
+- **Views:** Blade templates for UI rendering
+- **Controllers:** Process requests, apply business logic, and return responses
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This architecture ensures scalability, maintainability, and clean separation of concerns.
+
+---
+
+## 🗄️ Database Design
+
+- Relational database (`freelance_db`)
+- Normalized schema
+- Primary and foreign keys for integrity
+- Core tables include:
+  - users, profiles
+  - marketplace_jobs, categories, saved_jobs
+  - proposals, contracts, milestones, disputes
+  - chat_rooms, chat_messages, notifications
+  - reviews, payment_methods
+
+---
+
+## 🚀 Installation & Setup
+
+### Prerequisites
+- PHP 8.0+
+- Composer
+- MySQL
+- Node.js & npm
+- Laravel CLI
+- Apache / XAMPP / Laragon
+
+### Setup Steps
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/freelance-job-marketplace.git
+
+# Navigate to project directory
+cd freelance-job-marketplace
+
+# Install backend dependencies
+composer install
+
+# Install frontend dependencies
+npm install
+
+# Create environment file
+cp .env.example .env
+
+# Generate application key
+php artisan key:generate
+Configure Database (.env)
+DB_DATABASE=freelance_db
+DB_USERNAME=root
+DB_PASSWORD=
+
+Run Migrations
+php artisan migrate
+
+Start Development Server
+php artisan serve
+
+
+Access the application at:
+
+http://127.0.0.1:8000
+
+🔐 Security Features
+
+Password hashing
+
+CSRF protection
+
+Role-based middleware (client, freelancer)
+
+Input validation
+
+Secure session handling
+
+📈 Future Enhancements
+
+Online payment gateway integration
+
+Admin moderation panel
+
+Real-time chat using WebSockets
+
+Recommendation system for jobs
+
+Mobile application support
+
+📚 Documentation
+
+Detailed documentation is available in the project report, including:
+
+Technical Documentation
+
+ERD, Class, and Sequence Diagrams
+
+User Guide and FAQs
+
+Architecture Diagrams
+
+🎓 Academic Context
+
+This project was developed as part of an academic course to demonstrate:
+
+Full-stack web development skills
+
+Secure system design
+
+Database modeling
+
+Real-world application workflows
+
+🤝 Contributing
+
+Contributions are welcome for educational purposes.
+Please fork the repository and submit a pull request.
+
+📄 License
+
+This project is intended for educational use.
+
+
