@@ -19,7 +19,9 @@
                         'slide-in': 'slide-in 0.5s ease-out',
                         'bounce-slow': 'bounce 3s infinite',
                         'spin-slow': 'spin 3s linear infinite',
-                        'ping-slow': 'ping 3s cubic-bezier(0, 0, 0.2, 1) infinite'
+                        'ping-slow': 'ping 3s cubic-bezier(0, 0, 0.2, 1) infinite',
+                        'fade-in': 'fade-in 0.5s ease-out',
+                        'slide-down': 'slide-down 0.3s ease-out'
                     },
                     keyframes: {
                         float: {
@@ -37,156 +39,58 @@
                         'slide-in': {
                             '0%': { transform: 'translateX(-100px)', opacity: 0 },
                             '100%': { transform: 'translateX(0)', opacity: 1 }
+                        },
+                        'fade-in': {
+                            '0%': { opacity: 0 },
+                            '100%': { opacity: 1 }
+                        },
+                        'slide-down': {
+                            '0%': { transform: 'translateY(-20px)', opacity: 0 },
+                            '100%': { transform: 'translateY(0)', opacity: 1 }
                         }
                     },
                     backgroundImage: {
                         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-                        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))'
+                        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+                        'theme-gradient': 'linear-gradient(90deg, var(--primary), var(--secondary))'
+                    },
+                    colors: {
+                        'theme-primary': 'var(--primary)',
+                        'theme-secondary': 'var(--secondary)',
+                        'theme-accent': 'var(--accent)',
+                        'theme-light': 'var(--light)'
                     }
                 }
             }
         }
     </script>
     
+    <!-- External Theme CSS -->
+    <link href="{{ asset('css/worknest-themes.css') }}" rel="stylesheet">
+    
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --primary: #667eea;
-            --secondary: #764ba2;
-            --accent: #f56565;
-            --light: #f8fafc;
-            --dark: #0f172a;
-        }
-        
-        * {
-            font-family: 'Inter', sans-serif;
-        }
-        
-        /* Dark mode styles */
-        .dark {
-            background-color: #0f172a;
-            color: #f1f5f9;
-        }
-        
-        .dark .bg-white {
-            background-color: #1e293b !important;
-            color: #f1f5f9 !important;
-        }
-        
-        .dark .bg-gray-50 {
-            background-color: #1e293b !important;
-        }
-        
-        .dark .text-gray-800 {
-            color: #f1f5f9 !important;
-        }
-        
-        .dark .text-gray-600 {
-            color: #94a3b8 !important;
-        }
-        
-        .dark .border-gray-200 {
-            border-color: #334155 !important;
-        }
-        
-        /* Custom animations */
-        @keyframes shimmer {
-            0% { background-position: -1000px 0; }
-            100% { background-position: 1000px 0; }
-        }
-        
-        .shimmer {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 1000px 100%;
-            animation: shimmer 2s infinite linear;
-        }
-        
-        .dark .shimmer {
-            background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%);
-            background-size: 1000px 100%;
-        }
-        
-        /* Glass effect */
-        .glass {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .dark .glass {
-            background: rgba(30, 41, 59, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        /* Gradient text */
-        .gradient-text {
-            background: linear-gradient(90deg, #667eea, #764ba2, #f56565);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        /* Hover effects */
-        .hover-lift {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .hover-lift:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        }
-        
-        .dark .hover-lift:hover {
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 4px;
-        }
-        
-        .dark ::-webkit-scrollbar-track {
-            background: #334155;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(45deg, #764ba2, #667eea);
-        }
-    </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+<body class="bg-gray-50 dark:bg-gray-900 transition-all duration-500 @auth @if(auth()->user()->role == 'client') theme-client @elseif(auth()->user()->role == 'freelancer') theme-freelancer @endif @else theme-guest @endauth">
     <!-- Floating Background Particles -->
     <div id="particles-bg" class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <!-- Particles will be generated by JavaScript -->
     </div>
     
     <!-- Navigation -->
-    <nav class="bg-white dark:bg-gray-800 shadow-lg sticky top-0 z-50 transition-colors duration-300">
+   <nav class="absolute top-0 left-0 w-full z-50 bg-transparent transition-colors duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <!-- Logo -->
                 <div class="flex items-center">
                     <a href="/" class="flex items-center space-x-3 group">
-                        <div class="w-10 h-10 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center p-1 transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">
+                        <div class="w-10 h-10 rounded-lg bg-theme-gradient flex items-center justify-center p-1 transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">
                             <i class="fas fa-handshake text-white text-lg"></i>
                         </div>
-                        <span class="text-xl font-bold text-gray-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                        <span class="text-white/90 hover:text-white transition">
                             Work<span class="gradient-text">Nest</span>
                         </span>
                     </a>
@@ -194,17 +98,17 @@
                 
                 <!-- Desktop Menu -->
                 <div class="hidden md:flex items-center space-x-8">
-                    <a href="#jobs" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-300 relative group">
+                    <a href="#jobs" class="text-white/90 hover:text-white transition">
                         Jobs
-                        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 group-hover:w-full transition-all duration-300"></span>
+                        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-theme-gradient group-hover:w-full transition-all duration-300"></span>
                     </a>
-                    <a href="#freelancers" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-300 relative group">
+                    <a href="#freelancers" class="text-white/90 hover:text-white transition">
                         Freelancers
-                        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 group-hover:w-full transition-all duration-300"></span>
+                        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-theme-gradient group-hover:w-full transition-all duration-300"></span>
                     </a>
-                    <a href="#how-it-works" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-300 relative group">
+                    <a href="#how-it-works" class="text-white/90 hover:text-white transition">
                         How it Works
-                        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 group-hover:w-full transition-all duration-300"></span>
+                        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-theme-gradient group-hover:w-full transition-all duration-300"></span>
                     </a>
                     
                     <!-- Theme Toggle -->
@@ -212,29 +116,27 @@
                         <i id="theme-icon" class="fas fa-moon text-gray-700 dark:text-yellow-300"></i>
                     </button>
                     
-                  @auth
+                    @auth
                         <!-- User Menu -->
                         <div class="flex items-center space-x-4">
                             @if(auth()->user()->role == 'client')
-                                <a href="{{ route('dashboard') }}" class="px-4 py-2 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-lg hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
-                                    <i class="fas fa-plus mr-2"></i> Post Job
+                                <a href="{{ route('dashboard') }}" class="px-4 py-2 bg-gradient-to-r from-[#1B3C53] to-[#234C6A] text-white rounded-lg hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                                    <i class="fas fa-plus mr-2"></i> Dashboard
                                 </a>
                             @else
-                                <a href="{{ route('dashboard') }}" class="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
-                                    <i class="fas fa-briefcase mr-2"></i> Find Work
+                                <a href="{{ route('dashboard') }}" class="px-4 py-2 bg-gradient-to-r from-[#5B21B6] to-[#7C3AED] text-white rounded-lg hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                                    <i class="fas fa-briefcase mr-2"></i> Dashboard
                                 </a>
                             @endif
-                            <a href="{{ route('dashboard') }}" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-                                <i class="fas fa-user-circle text-xl"></i>
-                            </a>
+                           
                         </div>
                     @else
                         <!-- Auth Buttons -->
                         <div class="flex items-center space-x-4">
-                            <a href="{{ route('login') }}" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                            <a href="{{ route('login') }}" class="text-white/90 hover:text-white transition">
                                 Login
                             </a>
-                            <a href="{{ route('register') }}" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                            <a href="{{ route('register') }}" class="px-4 py-2 bg-theme-gradient text-white rounded-lg hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
                                 Get Started
                             </a>
                         </div>
@@ -269,7 +171,7 @@
                         </form>
                     @else
                         <a href="{{ route('login') }}" class="block text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white mb-2">Login</a>
-                        <a href="{{ route('register') }}" class="block px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg text-center">
+                        <a href="{{ route('register') }}" class="block px-4 py-2 bg-theme-gradient text-white rounded-lg text-center">
                             Get Started
                         </a>
                     @endauth
@@ -278,89 +180,110 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <section class="relative overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10"></div>
-        <div class="max-w-7xl mx-auto px-4 py-16 md:py-24 relative z-10">
-            <div class="flex flex-col lg:flex-row items-center">
-                <!-- Left Content -->
-                <div class="lg:w-1/2 mb-12 lg:mb-0 animate-slide-in">
-                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                        Find <span class="gradient-text">Perfect Talent</span> or 
-                        <span class="gradient-text">Dream Projects</span>
-                    </h1>
-                    <p class="text-xl text-gray-600 dark:text-gray-300 mb-8">
-                        Join thousands of businesses and freelancers connecting on WorkNest. 
-                        The #1 freelance marketplace for quality work.
-                    </p>
-                    
-                    <!-- Search Bar -->
-                    <div class="mb-8">
-                        <div class="relative max-w-2xl">
-                            <input type="text" 
-                                   placeholder="Search jobs, skills, or freelancers..." 
-                                   class="w-full px-6 py-4 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-12">
-                            <button class="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all duration-300">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- CTA Buttons -->
-                    <div class="flex flex-col sm:flex-row gap-4">
-                        @auth
-                            @if(auth()->user()->role == 'client')
-                                <a href="{{ route('client.jobs.create') }}" 
-                                   class="px-8 py-4 bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold rounded-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 flex items-center justify-center group">
-                                    <i class="fas fa-plus mr-3 group-hover:rotate-90 transition-transform duration-300"></i>
-                                    Post a Job
-                                </a>
-                            @else
-                                <a href="{{ route('dashboard') }}" 
-                                   class="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 flex items-center justify-center group">
-                                    <i class="fas fa-briefcase mr-3 group-hover:scale-110 transition-transform duration-300"></i>
-                                    Browse Jobs
-                                </a>
-                            @endif
-                        @else
-                            <a href="{{ route('register', ['role' => 'client']) }}" 
-                               class="px-8 py-4 bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold rounded-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 flex items-center justify-center group">
-                                <i class="fas fa-briefcase mr-3 group-hover:scale-110 transition-transform duration-300"></i>
-                                Hire Talent
-                            </a>
-                            <a href="{{ route('register', ['role' => 'freelancer']) }}" 
-                               class="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 flex items-center justify-center group">
-                                <i class="fas fa-laptop-code mr-3 group-hover:scale-110 transition-transform duration-300"></i>
-                                Find Work
-                            </a>
-                        @endauth
-                    </div>
+    <!-- Welcome Popup -->
+    @auth
+    <div id="welcome-popup" class="fixed top-6 right-6 z-[100] max-w-sm glass-popup rounded-2xl p-6 animate-slide-down shadow-2xl border border-white/20" style="animation-delay: 1s;">
+        <div class="flex justify-between items-start mb-4">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full @if(auth()->user()->role == 'client') bg-gradient-to-r from-[#1B3C53] to-[#234C6A] @else bg-gradient-to-r from-[#5B21B6] to-[#7C3AED] @endif flex items-center justify-center mr-3">
+                    <i class="fas @if(auth()->user()->role == 'client') fa-briefcase @else fa-laptop-code @endif text-white"></i>
                 </div>
-                
-                <!-- Right Illustration -->
-                <div class="lg:w-1/2 flex justify-center animate-float">
-                    <div class="relative">
-                        <div class="w-64 h-64 md:w-96 md:h-96 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 flex items-center justify-center relative overflow-hidden">
-                            <!-- Animated circles -->
-                            <div class="absolute w-full h-full">
-                                <div class="absolute top-1/4 left-1/4 w-32 h-32 rounded-full bg-blue-500/10 animate-ping-slow"></div>
-                                <div class="absolute bottom-1/4 right-1/4 w-24 h-24 rounded-full bg-purple-500/10 animate-ping-slow" style="animation-delay: 0.5s;"></div>
-                                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full bg-pink-500/10 animate-ping-slow" style="animation-delay: 1s;"></div>
-                            </div>
-                            
-                            <!-- Central icon -->
-                            <div class="relative z-10 text-center">
-                                <div class="w-32 h-32 md:w-48 md:h-48 rounded-full bg-gradient-to-r from-white to-gray-100 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center shadow-2xl mx-auto mb-6">
-                                    <i class="fas fa-handshake text-5xl md:text-7xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"></i>
-                                </div>
-                                <h3 class="text-2xl font-bold text-gray-800 dark:text-white">Join Our Community</h3>
-                            </div>
-                        </div>
-                    </div>
+                <div>
+                    <h3 class="font-bold text-gray-800 dark:text-white">Welcome to WorkNest!</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">
+                        @if(auth()->user()->role == 'client')
+                            Start posting jobs and find perfect talent.
+                        @else
+                            Browse jobs and start earning today.
+                        @endif
+                    </p>
                 </div>
             </div>
+            <button id="close-popup" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-300">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
-    </section>
+        <div class="flex gap-2">
+            @if(auth()->user()->role == 'client')
+                <a href="{{ route('client.jobs.create') }}" class="flex-1 px-4 py-2 bg-gradient-to-r from-[#1B3C53] to-[#234C6A] text-white rounded-lg text-center text-sm hover:shadow-lg transition-all duration-300">
+                    Post First Job
+                </a>
+            @else
+                <a href="{{ route('jobs.index') }}" class="flex-1 px-4 py-2 bg-gradient-to-r from-[#5B21B6] to-[#7C3AED] text-white rounded-lg text-center text-sm hover:shadow-lg transition-all duration-300">
+                    Find Jobs
+                </a>
+            @endif
+        </div>
+    </div>
+    @endauth
+
+<!-- Hero Section -->
+<section class="relative min-h-screen overflow-hidden">
+    <!-- Background Image -->
+    <div class="absolute inset-0">
+        <img 
+            src="{{ asset('images/b.png') }}" 
+            alt="WorkNest hero background"
+            class="w-full h-full object-cover"
+        >
+        <!-- Overlay -->
+        <div class="absolute inset-0 bg-black/50"></div>
+    </div>
+
+    <!-- Hero Content -->
+    <div class="relative z-10 max-w-7xl mx-auto px-4 pt-32 pb-20 md:pt-40 md:pb-32">
+        <div class="flex flex-col lg:flex-row items-center">
+            
+            <!-- Left Content -->
+            <div class="lg:w-1/2 mb-12 lg:mb-0">
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight text-white">
+                    Find <span class="text-blue-300">Perfect Talent</span> or 
+                    <span class="text-purple-300">Dream Projects</span>
+                </h1>
+
+                <p class="text-xl text-white/90 mb-8">
+                    Join thousands of businesses and freelancers connecting on WorkNest.
+                    The #1 freelance marketplace for quality work.
+                </p>
+
+                <!-- Search -->
+                <div class="mb-8">
+                    <div class="relative max-w-2xl">
+                        <form action="{{ route('search.results') }}" method="GET">
+                            <input type="text"
+                                   name="q"
+                                   placeholder="Search jobs, skills, or freelancers..."
+                                   class="w-full px-6 py-4 rounded-xl bg-white/95 text-gray-900 shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-12">
+                            <button type="submit"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-theme-gradient text-white rounded-lg">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- CTA Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="{{ route('register', ['role' => 'client']) }}"
+                       class="px-8 py-4 bg-gradient-to-r from-[#1B3C53] to-[#234C6A] text-white font-bold rounded-xl hover:shadow-2xl transition">
+                        Hire Talent
+                    </a>
+
+                    <a href="{{ route('register', ['role' => 'freelancer']) }}"
+                       class="px-8 py-4 bg-white/15 backdrop-blur text-white font-bold rounded-xl border border-white/30 hover:bg-white/25 transition">
+                        Find Work
+                    </a>
+                </div>
+            </div>
+
+            <!-- Right Illustration (KEEP yours or remove if you want cleaner hero) -->
+            <div class="lg:w-1/2 flex justify-center">
+                <!-- optional -->
+            </div>
+        </div>
+    </div>
+</section>
+
 
     <!-- Stats Counter -->
     <section class="py-12 bg-white dark:bg-gray-800 border-y border-gray-200 dark:border-gray-700">
@@ -403,7 +326,7 @@
                     <h2 class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-4">Featured Jobs</h2>
                     <p class="text-gray-600 dark:text-gray-300">Latest opportunities from top clients</p>
                 </div>
-                <a href="{{ route('jobs.index') }}" class="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+                <a href="{{ route('jobs.index') }}" class="text-theme-primary hover:underline font-medium flex items-center">
                     View all jobs <i class="fas fa-arrow-right ml-2"></i>
                 </a>
             </div>
@@ -418,7 +341,6 @@
                         ->get();
                     
                     if($featuredJobs->isEmpty()) {
-                        // Sample jobs for demo
                         $sampleJobs = [
                             ['title' => 'E-commerce Website Development', 'budget' => 5000, 'job_type' => 'fixed', 'experience_level' => 'expert', 'client' => ['name' => 'TechCorp Inc.']],
                             ['title' => 'Logo & Brand Identity Design', 'budget' => 800, 'job_type' => 'fixed', 'experience_level' => 'intermediate', 'client' => ['name' => 'StartupXYZ']],
@@ -430,9 +352,8 @@
                     }
                 @endphp
                 
-              @foreach($featuredJobs as $job)
-                <div class="job-card bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover-lift animate-fade-in-up" @php $delay = $loop->index * 0.1; @endphp
-style="animation-delay: {{ $delay }}s">
+                @foreach($featuredJobs->isEmpty() ? $sampleJobs : $featuredJobs as $job)
+                <div class="job-card bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover-lift animate-fade-in-up" @php $delay = $loop->index * 0.1; @endphp style="animation-delay: {{ $delay }}s">
                     <div class="flex justify-between items-start mb-4">
                         <div>
                             <span class="px-3 py-1 rounded-full text-xs font-medium 
@@ -452,14 +373,15 @@ style="animation-delay: {{ $delay }}s">
                     </div>
                     
                     <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-2">
-    @if(isset($job->id))
-        <a href="{{ route('jobs.show', $job) }}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-300">
-            {{ $job->title }}
-        </a>
-    @else
-        {{ $job['title'] ?? $job->title }}
-    @endif
-</h3>
+                        @if(isset($job->id))
+                            <a href="{{ route('jobs.show', $job) }}" class="hover:text-theme-primary transition-colors duration-300">
+                                {{ $job->title }}
+                            </a>
+                        @else
+                            {{ $job['title'] ?? $job->title }}
+                        @endif
+                    </h3>
+                    
                     <p class="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-2">
                         {{ $job['description'] ?? $job->description ?? 'Looking for a skilled professional to complete this project...' }}
                     </p>
@@ -488,30 +410,33 @@ style="animation-delay: {{ $delay }}s">
                     </div>
                     
                     <!-- Role-based Action Button -->
-<div class="mt-auto">
-    @if(isset($job->id)) {{-- Real job from database --}}
-        <a href="{{ route('jobs.show', $job) }}" 
-           class="block w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 text-center">
-            <i class="fas fa-eye mr-2"></i> View Details
-        </a>
-    @else {{-- Sample job (fallback) --}}
-        @auth
-            @if(auth()->user()->role == 'freelancer')
-                <button class="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
-                    <i class="fas fa-paper-plane mr-2"></i> Apply Now
-                </button>
-            @else
-                <button class="w-full py-3 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
-                    <i class="fas fa-eye mr-2"></i> View Details
-                </button>
-            @endif
-        @else
-            <a href="{{ route('login') }}" class="block w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 text-center">
-                <i class="fas fa-sign-in-alt mr-2"></i> Login to Apply
-            </a>
-        @endauth
-    @endif
-</div>
+                    <div class="mt-auto">
+                        @if(isset($job->id))
+                            <!-- Real job from database -->
+                            <a href="{{ route('jobs.show', $job) }}" 
+                               class="block w-full py-3 bg-theme-gradient text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 text-center">
+                                <i class="fas fa-eye mr-2"></i> View Details
+                            </a>
+                        @else
+                            <!-- Sample job (fallback) -->
+                            @auth
+                                @if(auth()->user()->role == 'freelancer')
+                                    <a href="{{ route('jobs.index') }}" 
+                                       class="block w-full py-3 bg-gradient-to-r from-[#5B21B6] to-[#7C3AED] text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 text-center">
+                                        <i class="fas fa-paper-plane mr-2"></i> Apply Now
+                                    </a>
+                                @else
+                                    <button class="w-full py-3 bg-gradient-to-r from-[#1B3C53] to-[#234C6A] text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                                        <i class="fas fa-eye mr-2"></i> View Details
+                                    </button>
+                                @endif
+                            @else
+                                <a href="{{ route('login') }}" class="block w-full py-3 bg-theme-gradient text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 text-center">
+                                    <i class="fas fa-sign-in-alt mr-2"></i> Login to Apply
+                                </a>
+                            @endauth
+                        @endif
+                    </div>
                 </div>
                 @endforeach
             </div>
@@ -551,10 +476,9 @@ style="animation-delay: {{ $delay }}s">
                     @endphp
                     
                     @foreach($freelancers->isEmpty() ? $sampleFreelancers : $freelancers as $freelancer)
-                    <div class="freelancer-card bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover-lift animate-fade-in-up" @php $delay = $loop->index * 0.1; @endphp
-style="animation-delay: {{ $delay }}s">
+                    <div class="freelancer-card bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover-lift animate-fade-in-up" @php $delay = $loop->index * 0.1; @endphp style="animation-delay: {{ $delay }}s">
                         <div class="flex items-center mb-4">
-                            <div class="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xl mr-4">
+                            <div class="w-16 h-16 rounded-full bg-theme-gradient flex items-center justify-center text-white font-bold text-xl mr-4">
                                 {{ substr($freelancer['name'] ?? $freelancer->name, 0, 1) }}
                             </div>
                             <div>
@@ -583,22 +507,29 @@ style="animation-delay: {{ $delay }}s">
                             @endforeach
                         </div>
                         
-                        <div class="mt-auto">
-                            @auth
-                            
-                           @if(auth()->user()->role == 'client')
-                                  
-                                  <a href="{{ route('messages.index') }}" 
-                                 class="block w-full py-2 bg-gradient-to-r from-[#1B3C53] to-[#234C6A] text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 mb-2 text-center">
-                               <i class="fas fa-envelope mr-2"></i> Go to Messages
-                               </a>
-                               @endif
-
-                            @endguest
-                            <button class="w-full py-2 border-2 border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400 rounded-xl font-medium hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-300">
-                                <i class="fas fa-eye mr-2"></i> View Profile
-                            </button>
-                        </div>
+                        <!-- Replace the View Profile button in each freelancer card -->
+<div class="mt-auto">
+    @auth
+        @if(auth()->user()->role == 'client')
+            <a href="{{ route('messages.index') }}" 
+               class="block w-full py-2 bg-gradient-to-r from-[#1B3C53] to-[#234C6A] text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 mb-2 text-center">
+                <i class="fas fa-envelope mr-2"></i> Go to Messages
+            </a>
+        @endif
+    @endauth
+    
+    <!-- VIEW PROFILE BUTTON - UPDATED -->
+    @if(isset($freelancer->id)) {{-- Real freelancer from database --}}
+    <a href="{{ route('freelancers.public.show', $freelancer) }}" 
+       class="w-full py-2 border-2 border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400 rounded-xl font-medium hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-300 text-center inline-flex items-center justify-center">
+        <i class="fas fa-eye mr-2"></i> View Profile
+    </a>
+@else {{-- Sample freelancer (fallback) --}}
+    <button class="w-full py-2 border-2 border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400 rounded-xl font-medium hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-300 inline-flex items-center justify-center">
+        <i class="fas fa-eye mr-2"></i> View Profile
+    </button>
+@endif
+</div>
                     </div>
                     @endforeach
                 </div>
@@ -616,7 +547,7 @@ style="animation-delay: {{ $delay }}s">
             
             <div class="grid md:grid-cols-3 gap-8">
                 <div class="text-center p-8 bg-white dark:bg-gray-800 rounded-3xl shadow-xl hover-lift">
-                    <div class="w-20 h-20 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center mx-auto mb-6 text-white text-2xl">
+                    <div class="w-20 h-20 rounded-2xl bg-theme-gradient flex items-center justify-center mx-auto mb-6 text-white text-2xl">
                         1
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-4">Create Profile</h3>
@@ -643,7 +574,7 @@ style="animation-delay: {{ $delay }}s">
     </section>
 
     <!-- CTA Section -->
-    <section class="py-20 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 relative overflow-hidden">
+    <section class="py-20 bg-theme-gradient relative overflow-hidden">
         <!-- Animated background elements -->
         <div class="absolute top-0 left-0 w-64 h-64 rounded-full bg-white/10 blur-3xl"></div>
         <div class="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-white/10 blur-3xl"></div>
@@ -655,7 +586,7 @@ style="animation-delay: {{ $delay }}s">
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('register', ['role' => 'freelancer']) }}" 
-                   class="px-8 py-4 bg-white text-blue-600 font-bold rounded-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 flex items-center justify-center group">
+                   class="px-8 py-4 bg-white text-theme-primary font-bold rounded-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 flex items-center justify-center group">
                     <i class="fas fa-laptop-code mr-3 text-xl group-hover:scale-110 transition-transform duration-300"></i>
                     Start Freelancing
                 </a>
@@ -674,7 +605,7 @@ style="animation-delay: {{ $delay }}s">
             <div class="grid md:grid-cols-4 gap-8">
                 <div>
                     <div class="flex items-center space-x-3 mb-6">
-                        <div class="w-10 h-10 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+                        <div class="w-10 h-10 rounded-lg bg-theme-gradient flex items-center justify-center">
                             <i class="fas fa-handshake"></i>
                         </div>
                         <span class="text-xl font-bold">WorkNest</span>
@@ -765,6 +696,34 @@ style="animation-delay: {{ $delay }}s">
             });
         }
         
+        // Welcome Popup Logic
+        const welcomePopup = document.getElementById('welcome-popup');
+        const closePopupBtn = document.getElementById('close-popup');
+        
+        if (welcomePopup && closePopupBtn) {
+            // Close popup on button click
+            closePopupBtn.addEventListener('click', () => {
+                welcomePopup.style.transform = 'translateX(100%)';
+                welcomePopup.style.opacity = '0';
+                setTimeout(() => {
+                    welcomePopup.remove();
+                }, 300);
+            });
+            
+            // Auto-close popup after 8 seconds
+            setTimeout(() => {
+                if (welcomePopup && welcomePopup.parentNode) {
+                    welcomePopup.style.opacity = '0';
+                    welcomePopup.style.transform = 'translateY(-20px)';
+                    setTimeout(() => {
+                        if (welcomePopup && welcomePopup.parentNode) {
+                            welcomePopup.remove();
+                        }
+                    }, 300);
+                }
+            }, 8000);
+        }
+        
         // Animated Counters
         document.addEventListener('DOMContentLoaded', function() {
             const counters = document.querySelectorAll('.counter');
@@ -803,6 +762,20 @@ style="animation-delay: {{ $delay }}s">
                     this.style.boxShadow = '';
                 });
             });
+            
+            // Apply theme-specific background patterns
+            const body = document.body;
+            const heroSection = document.querySelector('section.relative.overflow-hidden');
+            
+            if (heroSection && body.classList.contains('theme-client')) {
+                heroSection.classList.add('theme-bg-pattern');
+            }
+            if (heroSection && body.classList.contains('theme-freelancer')) {
+                heroSection.classList.add('theme-bg-pattern');
+            }
+            if (heroSection && body.classList.contains('theme-guest')) {
+                heroSection.classList.add('theme-bg-pattern');
+            }
         });
         
         // Floating Particles Background
@@ -810,22 +783,40 @@ style="animation-delay: {{ $delay }}s">
             const container = document.getElementById('particles-bg');
             if (!container) return;
             
-            for (let i = 0; i < 30; i++) {
+            // Get current theme colors
+            const body = document.body;
+            let colors;
+            
+            if (body.classList.contains('theme-client')) {
+                colors = [
+                    'rgba(27, 60, 83, 0.1)',
+                    'rgba(35, 76, 106, 0.1)',
+                    'rgba(69, 104, 130, 0.1)'
+                ];
+            } else if (body.classList.contains('theme-freelancer')) {
+                colors = [
+                    'rgba(91, 33, 182, 0.1)',
+                    'rgba(124, 58, 237, 0.1)',
+                    'rgba(167, 139, 250, 0.1)'
+                ];
+            } else {
+                colors = [
+                    'rgba(58, 80, 107, 0.1)',
+                    'rgba(91, 108, 141, 0.1)',
+                    'rgba(139, 127, 216, 0.1)'
+                ];
+            }
+            
+            for (let i = 0; i < 25; i++) {
                 const particle = document.createElement('div');
                 particle.className = 'particle absolute rounded-full';
                 
                 // Random properties
-                const size = Math.random() * 100 + 20;
+                const size = Math.random() * 80 + 20;
                 const posX = Math.random() * 100;
                 const posY = Math.random() * 100;
                 const duration = Math.random() * 20 + 10;
                 const delay = Math.random() * 5;
-                const colors = [
-                    'rgba(102, 126, 234, 0.1)',
-                    'rgba(118, 75, 162, 0.1)',
-                    'rgba(245, 101, 101, 0.1)',
-                    'rgba(72, 187, 120, 0.1)'
-                ];
                 const color = colors[Math.floor(Math.random() * colors.length)];
                 
                 particle.style.width = `${size}px`;
