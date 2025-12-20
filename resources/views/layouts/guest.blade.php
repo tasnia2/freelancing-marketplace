@@ -1,4 +1,3 @@
-{{-- resources/views/layouts/guest.blade.php --}}
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -14,431 +13,304 @@
 
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- Tailwind -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
-<style>
-    body {
-        font-family: 'Inter', sans-serif;
-        min-height: 100vh;
-        overflow-x: hidden;
-    }
-    
-    /* Gradient Background */
-    .gradient-bg {
-        background: linear-gradient(-45deg, #6f1b55ff, #d899b1ff, #23a6d5, #9ad1c5ff);
-        background-size: 400% 400%;
-        animation: gradient 15s ease infinite;
-    }
 
-    @keyframes gradient {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
+    <style>
+        :root{
+            /* YOUR BRAND BUTTON COLORS */
+            --blue-1: #1B3C53;
+            --blue-2: #3f83b7ff;
 
-    /* Particle Styles */
-    .particle {
-        position: absolute;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.3);
-        pointer-events: none;
-    }
-
-    /* Blob Animation */
-    .blob-animation {
-        animation: blob 7s infinite;
-    }
-
-    @keyframes blob {
-        0% { transform: translate(0px, 0px) scale(1); }
-        33% { transform: translate(30px, -50px) scale(1.1); }
-        66% { transform: translate(-20px, 20px) scale(0.9); }
-        100% { transform: translate(0px, 0px) scale(1); }
-    }
-    
-    /* Main container - keep flex but ensure full height */
-    .min-h-screen.flex {
-        min-height: 100vh;
-    }
-    
-    /* ===== LAYOUT ===== */
-    
-    /* Left side */
-    .left-side {
-        display: none; /* Hidden by default on mobile */
-        position: relative;
-        overflow: hidden;
-    }
-    
-    @media (min-width: 768px) {
-        .left-side {
-            display: block;
-            width: 55%;
+            --glass: rgba(255,255,255,.12);
+            --glass-border: rgba(255,255,255,.18);
+            --shadow: 0 25px 70px rgba(0,0,0,.45);
         }
-    }
-    
-    @media (min-width: 1024px) {
-        .left-side {
-            width: 44%; /* Adjust this to increase picture size */
-        }
-    }
-    
-    /* Ensure image covers properly */
-    .left-side img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        position: absolute;
-        inset: 0;
-    }
-    
-    /* Right side */
-    .right-side {
-        padding: 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-    }
-    
-    @media (min-width: 768px) {
-        .right-side {
-            width: 50%;
-            padding: 2rem;
-        }
-    }
-    
-    @media (min-width: 1024px) {
-        .right-side {
-            width: 45%; /* Adjust this to balance with left side */
-        }
-    }
-    
-    /* Card container */
-    .right-side-content {
-        width: 100%;
-        max-width: 420px; /* Adjust this to increase card width */
-        margin: 0 auto;
-    }
-    
-    /* Auth card */
-    .auth-card {
-        background: rgba(255, 255, 255, 0.10);
-        backdrop-filter: blur(30px);
-        border-radius: 20px;
-        padding: 2.5rem; /* Adjust this to increase card padding */
-        width: 100%;
-        max-width: 420px; /* Adjust this to increase card width */
-        box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        transition: transform 0.3s ease;
-    }
-    
-    .auth-card:hover {
-        transform: translateY(-2px);
-    }
-    
-    /* ===== DECORATIVE ELEMENTS ===== */
-    
-    /* Floating shapes */
-    .floating-shapes {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 0;
-    }
-    
-    .shape {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(40px);
-        opacity: 0.15;
-    }
-    
-    .shape-1 {
-        width: 300px;
-        height: 300px;
-        background: #cb649fff;
-        top: 10%;
-        left: 10%;
-        animation: float-1 20s infinite ease-in-out;
-    }
-    
-    .shape-2 {
-        width: 200px;
-        height: 200px;
-        background: #96cfcbff;
-        top: 60%;
-        right: 15%;
-        animation: float-2 25s infinite ease-in-out;
-    }
-    
-    .shape-3 {
-        width: 150px;
-        height: 150px;
-        background: #d8cfa2ff;
-        bottom: 20%;
-        left: 20%;
-        animation: float-3 30s infinite ease-in-out;
-    }
-    
-    @keyframes float-1 {
-        0%, 100% { transform: translate(0, 0) rotate(0deg); }
-        33% { transform: translate(30px, -50px) rotate(120deg); }
-        66% { transform: translate(-20px, 20px) rotate(240deg); }
-    }
-    
-    @keyframes float-2 {
-        0%, 100% { transform: translate(0, 0) rotate(0deg); }
-        33% { transform: translate(-40px, 30px) rotate(-90deg); }
-        66% { transform: translate(20px, -20px) rotate(180deg); }
-    }
-    
-    @keyframes float-3 {
-        0%, 100% { transform: translate(0, 0) rotate(0deg); }
-        33% { transform: translate(15px, 40px) rotate(60deg); }
-        66% { transform: translate(-30px, -15px) rotate(120deg); }
-    }
-    
-    /* ===== FORM ELEMENTS ===== */
-    
-    .input-field {
-        transition: all 0.3s ease;
-        border: 2px solid #e5e7eb;
-        padding: 12px 16px;
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.9);
-        width: 100%;
-    }
-    
-    .input-field:focus {
-        border-color: #edecf0ff;
-        box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
-        background: white;
-        outline: none;
-    }
-    
-    /* Progress steps */
-    .step-progress {
-        height: 4px;
-        background: #673271ff;
-        border-radius: 2px;
-        overflow: hidden;
-        margin-bottom: 1rem;
-    }
-    
-    .step-fill {
-        height: 100%;
-        background: linear-gradient(to right, #8b5cf6, #6366f1);
-        transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .step-circle {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        font-size: 13px;
-        transition: all 0.3s ease;
-    }
-    
-    /* Buttons */
-    .btn-primary {
-        background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-        color: white;
-        padding: 12px 24px;
-        border-radius: 12px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
-        border: none;
-        cursor: pointer;
-        width: 100%;
-    }
-    
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
-    }
-    
-    .btn-secondary {
-        background: rgba(190, 31, 176, 0.9);
-        color: white;
-        padding: 12px 24px;
-        border-radius: 12px;
-        font-weight: 600;
-        border: 2px solid #e5e7eb;
-        transition: all 0.3s ease;
-        cursor: pointer;
-    }
-    
-    .btn-secondary:hover {
-        background: rgba(190, 31, 176, 1);
-        border-color: #d1d5db;
-    }
-    
-    /* Role cards */
-    .role-card {
-        border: 2px solid #e5e7eb;
-        border-radius: 16px;
-        padding: 20px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        background: rgba(255, 255, 255, 0.8);
-        margin-bottom: 1rem;
-    }
-    
-    .role-card:hover {
-        transform: translateY(-4px);
-        border-color: #8b5cf6;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    }
-    
-    .role-card.active {
-        border-color: #8b5cf6;
-        background: rgba(139, 92, 246, 0.05);
-        box-shadow: 0 10px 30px rgba(139, 92, 246, 0.15);
-    }
-    
-    /* Logo styling */
-    .logo-container {
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    
-    .logo-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 1rem;
-        box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
-    }
-    
-    .logo-icon img {
-        width: 70%;
-        height: 70%;
-        object-fit: contain;
-    }
-    
-    /* Form spacing */
-    .form-group {
-        margin-bottom: 1.5rem;
-    }
-    
-    /* Footer */
-    .auth-footer {
-        margin-top: 2rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid #e5e7eb;
-        text-align: center;
-        font-size: 0.875rem;
-        color: #6b7280;
-    }
-</style>
-<body class="gradient-bg">
-    <!-- Animated Background Shapes -->
-    <!-- Animated Background Particles -->
-    <div id="particles-container"></div>
 
-    <!-- Floating Shapes (Decoration) -->
-    <div class="fixed inset-0 pointer-events-none overflow-hidden">
-        <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-300/20 rounded-full blur-3xl blob-animation"></div>
-        <div class="absolute top-1/3 right-1/4 w-96 h-96 bg-pink-300/20 rounded-full blur-3xl blob-animation" style="animation-delay: 2s;"></div>
-        <div class="absolute bottom-1/4 left-1/3 w-80 h-80 bg-blue-300/20 rounded-full blur-3xl blob-animation" style="animation-delay: 4s;"></div>
-        <div class="absolute bottom-1/3 right-1/3 w-72 h-72 bg-teal-300/20 rounded-full blur-3xl blob-animation" style="animation-delay: 6s;"></div>
+        body{
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            background: #020617; /* fallback only */
+            overflow-x: hidden;
+        }
+
+        /* ===== VIDEO BACKGROUND (NO OVERLAY) ===== */
+        .video-bg{
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            background: #020617;
+        }
+
+        .video-bg video{
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Mobile fallback */
+        @media (max-width: 768px){
+            .video-bg video{ display:none; }
+            .video-bg{
+                background: url("{{ asset('images/side.webp') }}") center / cover no-repeat;
+            }
+        }
+
+        /* ===== MAIN WRAPPER ===== */
+        .page{
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+        }
+
+        .shell{
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 32px;
+            align-items: center;
+        }
+        .brand-chips{
+    margin-top: 22px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.brand-chip{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.10);
+    border: 1px solid rgba(255,255,255,.18);
+    color: rgba(255,255,255,.85);
+    font-size: .88rem;
+    backdrop-filter: blur(6px);
+}
+
+.brand-chip i{
+    color: rgba(255,255,255,.95);
+    font-size: .85rem;
+}
+
+
+        @media (min-width: 1024px){
+            .shell{
+                grid-template-columns: 1.1fr .9fr;
+                gap: 64px;
+            }
+        }
+
+        /* ===== LEFT BRAND ===== */
+        .brand{
+            display: none;
+            color: #fff;
+        }
+
+        @media (min-width: 1024px){
+            .brand{ display:block; }
+        }
+
+        .brand h1{
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1.05;
+        }
+
+        .brand p{
+            margin-top: 14px;
+            max-width: 520px;
+            font-size: 1.05rem;
+            opacity: .85;
+        }
+
+        /* ===== AUTH CARD ===== */
+        .auth-wrap{
+            display: flex;
+            justify-content: center;
+        }
+
+        .auth-card{
+            width: 100%;
+            max-width: 440px;
+            background: var(--glass);
+            backdrop-filter: blur(18px);
+            border: 1px solid var(--glass-border);
+            border-radius: 22px;
+            padding: 40px 32px;
+            box-shadow: var(--shadow);
+        }
+
+        /* ===== LOGO ===== */
+        .logo{
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .logo-badge{
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--blue-1), var(--blue-2));
+        }
+
+        .logo-badge i{
+            color: #fff;
+            font-size: 20px;
+        }
+
+        .logo h2{
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .logo p{
+            font-size: .9rem;
+            opacity: .75;
+        }
+
+        /* ===== FORM ELEMENTS ===== */
+        .input-field{
+            width: 100%;
+            background: rgba(255,255,255,.95);
+            border-radius: 14px;
+            padding: 14px 18px;
+            border: none;
+            font-size: 15px;
+        }
+
+        .input-field:focus{
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(69,104,130,.4);
+        }
+
+        .btn-primary{
+            width: 100%;
+            border: none;
+            cursor: pointer;
+            border-radius: 14px;
+            padding: 14px 16px;
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(135deg, var(--blue-1), var(--blue-2));
+        }
+
+        .btn-primary:hover{
+            filter: brightness(1.05);
+        }
+
+        .role-card{
+            border-radius: 14px;
+            padding: 14px;
+            border: 1px solid rgba(255,255,255,.18);
+            cursor: pointer;
+        }
+
+        .role-card:hover{
+            background: rgba(255,255,255,.06);
+        }
+
+        .card-footer{
+            margin-top: 26px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,.15);
+            text-align: center;
+            font-size: .85rem;
+            opacity: .7;
+        }
+    </style>
+</head>
+<script>
+    // Check if page loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded successfully');
+    });
+    
+    window.addEventListener('load', function() {
+        console.log('All resources loaded');
+        // Hide any loading spinners if you have them
+    });
+</script>
+<body>
+
+    <!-- VIDEO BACKGROUND -->
+    <div class="video-bg">
+        <video autoplay muted loop playsinline>
+            <source src="{{ asset('images/bgg.mp4') }}" type="video/mp4">
+        </video>
     </div>
 
-        <!-- MAIN TWO-SIDE LAYOUT -->
-    <div class="min-h-screen flex">
-        <!-- LEFT SIDE IMAGE - Now shows on tablets and up -->
-        <div class="left-side">
-            <img src="{{ asset('images/side.webp') }}" alt="WorkNest" class="w-full h-full object-cover">
-        </div>
+    <!-- MAIN CONTENT -->
+    <div class="page">
+        <div class="shell">
 
-        <!-- RIGHT SIDE AUTH CARD -->
-        <div class="right-side relative z-10">
-            <div class="right-side-content">
+            <!-- LEFT BRAND -->
+            <section class="brand">
+                <h1>
+                    Where Skills<br>
+                    Meet Opportunity
+                </h1>
+                <p>
+                    WorkNest connects freelancers and clients worldwide.
+                </p>
+                <div class="brand-chips">
+    <span class="brand-chip">
+        <i class="fa-solid fa-shield-halved"></i>
+        Trusted Payments
+    </span>
+
+    <span class="brand-chip">
+        <i class="fa-solid fa-badge-check"></i>
+        Verified Talent
+    </span>
+
+    <span class="brand-chip">
+        <i class="fa-solid fa-globe"></i>
+        Global Reach
+    </span>
+</div>
+
+            </section>
+
+            <!-- AUTH CARD -->
+            <section class="auth-wrap">
                 <div class="auth-card">
-                    <!-- Logo -->
-                    <div class="text-center mb-8">
-                        <h1 class="text-3xl font-extrabold text-white">WorkNest</h1>
-                        <p class="text-gray-200 text-sm mt-1">Freelance Marketplace</p>
+                    <div class="logo">
+                        <div class="logo-badge">
+                            <i class="fas fa-handshake"></i>
+                        </div>
+                        <h2>WorkNest</h2>
+                        <p>Freelance Marketplace</p>
                     </div>
 
-                    <!-- Dynamic Form Content -->
                     @yield('content')
 
-                    <!-- Footer -->
-                    <div class="mt-8 pt-6 border-t border-gray-300/30 text-center">
-                        <p class="text-sm text-gray-200">
-                            © {{ date('Y') }} WorkNest — All Rights Reserved.
-                        </p>
+                    <div class="card-footer">
+                        © {{ date('Y') }} WorkNest — All Rights Reserved
                     </div>
                 </div>
-            </div>
+            </section>
+
         </div>
     </div>
-
-
-    <!-- Background Particle System Script -->
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const container = document.getElementById('particles-container');
-        const particleCount = 30;
-        
-        for (let i = 0; i < particleCount; i++) {
-            const particle = document.createElement('div');
-            particle.classList.add('particle');
-            
-            // Random size and position
-            const size = Math.random() * 100 + 20;
-            particle.style.width = `${size}px`;
-            particle.style.height = `${size}px`;
-            particle.style.left = `${Math.random() * 100}%`;
-            particle.style.top = `${Math.random() * 100}%`;
-            
-            // Random color with opacity
-            const colors = [
-                'rgba(255, 255, 255, 0.1)',
-                'rgba(255, 255, 255, 0.05)',
-                'rgba(255, 255, 255, 0.15)'
-            ];
-            particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-            
-            // Animation
-            particle.style.animation = `float ${Math.random() * 10 + 10}s ease-in-out infinite`;
-            particle.style.animationDelay = `${Math.random() * 5}s`;
-            
-            container.appendChild(particle);
-        }
-        
-        // Add hover effect to card (updated selector)
-        const card = document.querySelector('.thin-wrapper');
-        if (card) {
-            card.addEventListener('mouseenter', () => {
-                card.style.transform = 'scale(1.01)';
-            });
-            card.addEventListener('mouseleave', () => {
-                card.style.transform = 'scale(1)';
-            });
-        }
-    });
-    </script>
 
     @stack('scripts')
 </body>
