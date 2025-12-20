@@ -1,0 +1,268 @@
+/* WorkNest Role-Based Theme System */
+:root {
+    --primary: #667eea;
+    --secondary: #764ba2;
+    --accent: #f56565;
+    --light: #f8fafc;
+    --dark: #0f172a;
+    
+    /* Client Theme Colors [Your provided palette] */
+    --client-primary: #1B3C53;
+    --client-secondary: #234C6A;
+    --client-accent: #456882;
+    --client-light: #E3E3E3;
+    
+    /* Freelancer Theme Colors (Aesthetic Purple) */
+    --freelancer-primary: #5B21B6;
+    --freelancer-secondary: #7C3AED;
+    --freelancer-accent: #A78BFA;
+    --freelancer-light: #F5F3FF;
+    
+    /* Guest Theme (Mix of Both) */
+    --guest-primary: #3A506B; /* Blend of client blue and freelancer purple */
+    --guest-secondary: #5B6C8D;
+    --guest-accent: #8B7FD8;
+    --guest-light: #F0F4F8;
+}
+
+* {
+    font-family: 'Inter', sans-serif;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* ========== ROLE-BASED THEME CLASSES ========== */
+.theme-client {
+    --primary: var(--client-primary);
+    --secondary: var(--client-secondary);
+    --accent: var(--client-accent);
+    --light: var(--client-light);
+}
+
+.theme-freelancer {
+    --primary: var(--freelancer-primary);
+    --secondary: var(--freelancer-secondary);
+    --accent: var(--freelancer-accent);
+    --light: var(--freelancer-light);
+}
+
+.theme-guest {
+    --primary: var(--guest-primary);
+    --secondary: var(--guest-secondary);
+    --accent: var(--guest-accent);
+    --light: var(--guest-light);
+}
+
+/* ========== THEME-SPECIFIC STYLES ========== */
+/* Client theme gradients */
+.theme-client .gradient-text {
+    background: linear-gradient(90deg, var(--client-primary), var(--client-secondary), var(--client-accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.theme-client .bg-theme-gradient {
+    background: linear-gradient(90deg, var(--client-primary), var(--client-secondary));
+}
+
+.theme-client .border-theme {
+    border-color: var(--client-secondary);
+}
+
+/* Freelancer theme gradients */
+.theme-freelancer .gradient-text {
+    background: linear-gradient(90deg, var(--freelancer-primary), var(--freelancer-secondary), var(--freelancer-accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.theme-freelancer .bg-theme-gradient {
+    background: linear-gradient(90deg, var(--freelancer-primary), var(--freelancer-secondary));
+}
+
+.theme-freelancer .border-theme {
+    border-color: var(--freelancer-secondary);
+}
+
+/* Guest theme gradients */
+.theme-guest .gradient-text {
+    background: linear-gradient(90deg, var(--guest-primary), var(--guest-secondary), var(--guest-accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.theme-guest .bg-theme-gradient {
+    background: linear-gradient(90deg, var(--guest-primary), var(--guest-secondary));
+}
+
+.theme-guest .border-theme {
+    border-color: var(--guest-secondary);
+}
+
+/* ========== DARK MODE ADJUSTMENTS ========== */
+.dark {
+    background-color: #0f172a;
+    color: #f1f5f9;
+}
+
+.dark .bg-white {
+    background-color: #1e293b !important;
+    color: #f1f5f9 !important;
+}
+
+.dark .bg-gray-50 {
+    background-color: #1e293b !important;
+}
+
+.dark .text-gray-800 {
+    color: #f1f5f9 !important;
+}
+
+.dark .text-gray-600 {
+    color: #94a3b8 !important;
+}
+
+.dark .border-gray-200 {
+    border-color: #334155 !important;
+}
+
+/* Dark mode theme adjustments */
+.dark.theme-client .glass {
+    background: rgba(27, 60, 83, 0.7);
+}
+
+.dark.theme-freelancer .glass {
+    background: rgba(91, 33, 182, 0.7);
+}
+
+.dark.theme-guest .glass {
+    background: rgba(58, 80, 107, 0.7);
+}
+
+/* ========== CUSTOM ANIMATIONS ========== */
+@keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+}
+
+.shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite linear;
+}
+
+.dark .shimmer {
+    background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%);
+    background-size: 1000px 100%;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+}
+
+@keyframes pulse-glow {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+@keyframes fade-in-up {
+    0% { transform: translateY(30px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slide-in {
+    0% { transform: translateX(-100px); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+}
+
+/* ========== GLASS EFFECTS ========== */
+.glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-popup {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* ========== HOVER EFFECTS ========== */
+.hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.dark .hover-lift:hover {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.hover-glow:hover {
+    box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.5);
+}
+
+/* ========== CUSTOM SCROLLBAR ========== */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-track {
+    background: #334155;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, var(--primary), var(--secondary));
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(45deg, var(--secondary), var(--primary));
+}
+
+/* ========== UTILITY CLASSES ========== */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.text-balance {
+    text-wrap: balance;
+}
+
+/* ========== THEME BACKGROUND PATTERNS ========== */
+.theme-client .theme-bg-pattern {
+    background-image: 
+        radial-gradient(circle at 10% 20%, rgba(27, 60, 83, 0.1) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(35, 76, 106, 0.1) 0%, transparent 20%);
+}
+
+.theme-freelancer .theme-bg-pattern {
+    background-image: 
+        radial-gradient(circle at 10% 20%, rgba(91, 33, 182, 0.1) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(124, 58, 237, 0.1) 0%, transparent 20%);
+}
+
+.theme-guest .theme-bg-pattern {
+    background-image: 
+        radial-gradient(circle at 10% 20%, rgba(58, 80, 107, 0.1) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(91, 108, 141, 0.1) 0%, transparent 20%);
+}
