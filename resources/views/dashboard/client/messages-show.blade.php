@@ -1,554 +1,899 @@
-{{-- resources/views/dashboard/client/messages-show.blade.php --}}
-@extends('layouts.client')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with {{ $user->name }} - WorkNest</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    <style>
+        :root {
+            /* Dark Grey Color Palette */
+            --dark-grey-dark: #1B3C53;
+            --dark-grey-medium: #234C6A;
+            --dark-grey-light: #456882;
+            --dark-grey-ultra-light: #E3E3E3;
+            --dark-grey-bg: #F8FAFC;
+            --neutral-light: #F3F4F6;
+            --white: #ffffff;
+            --black: #1F2937;
+            --success: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+        }
 
-@section('content')
-<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-    <div class="container mx-auto px-4 py-8">
-        <!-- Animated Header -->
-        <div class="mb-8 animate-fade-in-down">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <a href="{{ route('messages.index') }}" 
-                       class="text-blue-600 hover:text-blue-800 transition-colors duration-300">
-                        <i class="fas fa-arrow-left text-lg"></i>
-                    </a>
-                    <div class="flex items-center space-x-3">
-                        @if($user->profile && $user->profile->avatar)
-                            <img src="{{ asset('storage/' . $user->profile->avatar) }}" 
-                                 alt="{{ $user->name }}"
-                                 class="w-12 h-12 rounded-full border-2 border-white shadow-lg object-cover">
-                        @else
-                            <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 
-                                      flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                                {{ substr($user->name, 0, 1) }}
-                            </div>
-                        @endif
-                        <div>
-                            <h1 class="text-2xl font-bold text-gray-800">{{ $user->name }}</h1>
-                            <p class="text-gray-600">{{ $user->role == 'freelancer' ? 'Freelancer' : 'Client' }}</p>
-                        </div>
-                    </div>
-                </div>
-                @if($sharedJobs->count() > 0 || $sharedContracts->count() > 0)
-                <div class="relative group">
-                    <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
-                                 transition-all duration-300 shadow-md hover:shadow-lg">
-                        <i class="fas fa-paperclip mr-2"></i>Attach
-                    </button>
-                    <div class="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl 
-                               opacity-0 invisible group-hover:opacity-100 group-hover:visible 
-                               transition-all duration-300 z-50 border border-gray-200">
-                        @if($sharedJobs->count() > 0)
-                        <div class="p-3 border-b">
-                            <p class="text-sm font-medium text-gray-700 mb-2">Shared Jobs</p>
-                            @foreach($sharedJobs as $job)
-                            <label class="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer">
-                                <input type="radio" name="job_id" value="{{ $job->id }}" 
-                                       class="mr-2 text-blue-600">
-                                <span class="text-sm">{{ Str::limit($job->title, 30) }}</span>
-                            </label>
-                            @endforeach
-                        </div>
-                        @endif
-                        @if($sharedContracts->count() > 0)
-                        <div class="p-3">
-                            <p class="text-sm font-medium text-gray-700 mb-2">Shared Contracts</p>
-                            @foreach($sharedContracts as $contract)
-                            <label class="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer">
-                                <input type="radio" name="contract_id" value="{{ $contract->id }}" 
-                                       class="mr-2 text-blue-600">
-                                <span class="text-sm">Contract #{{ $contract->id }}</span>
-                            </label>
-                            @endforeach
-                        </div>
-                        @endif
-                    </div>
-                </div>
-                @endif
-            </div>
-        </div>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
 
-        <!-- Messages Container -->
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200 
-                   animate-slide-up">
-            <!-- Messages List -->
-            <div id="messages-container" class="h-[500px] overflow-y-auto p-6 bg-gradient-to-b 
-                      from-gray-50 to-white">
-                @foreach($messages as $message)
-                <div class="message-item mb-4 animate-fade-in" 
-                     data-message-id="{{ $message->id }}">
-                    <div class="flex {{ $message->sender_id == auth()->id() ? 'justify-end' : 'justify-start' }}">
-                        <div class="max-w-[70%]">
-                            <div class="flex items-end space-x-2 {{ $message->sender_id == auth()->id() ? 'flex-row-reverse space-x-reverse' : '' }}">
-                                <!-- Avatar -->
-                                @if($message->sender_id != auth()->id())
-                                <div class="flex-shrink-0">
-                                    @if($message->sender->profile && $message->sender->profile->avatar)
-                                    <img src="{{ asset('storage/' . $message->sender->profile->avatar) }}" 
-                                         alt="{{ $message->sender->name }}"
-                                         class="w-8 h-8 rounded-full">
-                                    @else
-                                    <div class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 
-                                              flex items-center justify-center text-white text-xs font-bold">
-                                        {{ substr($message->sender->name, 0, 1) }}
-                                    </div>
-                                    @endif
-                                </div>
-                                @endif
-                                
-                                <!-- Message Bubble -->
-                                <div class="{{ $message->sender_id == auth()->id() 
-                                            ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-l-2xl rounded-tr-2xl' 
-                                            : 'bg-gray-100 text-gray-800 rounded-r-2xl rounded-tl-2xl' }} 
-                                          px-4 py-3 shadow-sm">
-                                    <p class="text-sm leading-relaxed">{{ $message->message }}</p>
-                                    
-                                    <!-- Attachments -->
-                                    @if($message->attachments && count($message->attachments) > 0)
-                                    <div class="mt-2 space-y-2">
-                                        @foreach($message->attachments as $attachment)
-                                        <a href="{{ $attachment['url'] ?? '#' }}" 
-                                           target="_blank"
-                                           class="flex items-center p-2 bg-white bg-opacity-20 rounded-lg 
-                                                  hover:bg-opacity-30 transition-all duration-200">
-                                            <i class="fas fa-paperclip mr-2"></i>
-                                            <span class="text-xs truncate">{{ $attachment['name'] }}</span>
-                                        </a>
-                                        @endforeach
-                                    </div>
-                                    @endif
-                                    
-                                    <!-- Time -->
-                                    <div class="mt-1 text-xs opacity-75 {{ $message->sender_id == auth()->id() 
-                                                ? 'text-blue-100' : 'text-gray-500' }}">
-                                        {{ $message->formatted_time }}
-                                        @if($message->sender_id == auth()->id())
-                                        <i class="ml-1 fas {{ $message->read ? 'fa-check-double text-green-300' : 'fa-check' }}"></i>
-                                        @endif
-                                    </div>
-                                </div>
-                                
-                                <!-- Avatar for own messages -->
-                                @if($message->sender_id == auth()->id())
-                                <div class="flex-shrink-0">
-                                    @if(auth()->user()->profile && auth()->user()->profile->avatar)
-                                    <img src="{{ asset('storage/' . auth()->user()->profile->avatar) }}" 
-                                         alt="{{ auth()->user()->name }}"
-                                         class="w-8 h-8 rounded-full">
-                                    @else
-                                    <div class="w-8 h-8 rounded-full bg-gradient-to-r from-green-400 to-green-600 
-                                              flex items-center justify-center text-white text-xs font-bold">
-                                        {{ substr(auth()->user()->name, 0, 1) }}
-                                    </div>
-                                    @endif
-                                </div>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
+        body {
+            background: linear-gradient(135deg, var(--dark-grey-bg) 0%, var(--neutral-light) 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--black);
+        }
+
+        .messages-container {
+            min-height: calc(100vh - 40px);
+            background: var(--white);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(27, 60, 83, 0.15);
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header */
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 30px;
+            background: linear-gradient(135deg, var(--dark-grey-medium) 0%, var(--dark-grey-dark) 100%);
+            color: white;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .back-button {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 15px;
+            text-decoration: none;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateX(-3px);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+
+        .user-avatar {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--dark-grey-light), var(--dark-grey-medium));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            margin-right: 15px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .user-details h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .user-details p {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .role-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .shared-jobs-btn {
+            background: white;
+            color: var(--dark-grey-medium);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(27, 60, 83, 0.2);
+        }
+
+        .shared-jobs-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(27, 60, 83, 0.3);
+            background: var(--dark-grey-ultra-light);
+        }
+
+        /* Messages Area */
+        .messages-area {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 200px);
+        }
+
+        .messages-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 25px;
+            background: var(--dark-grey-bg);
+        }
+
+        .message-item {
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-sent {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .message-received {
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 14px 18px;
+            border-radius: 20px;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .message-bubble.sent {
+            background: linear-gradient(135deg, var(--dark-grey-medium), var(--dark-grey-dark));
+            color: white;
+            border-bottom-right-radius: 6px;
+        }
+
+        .message-bubble.received {
+            background: white;
+            color: var(--dark-grey-dark);
+            border: 1px solid var(--dark-grey-ultra-light);
+            border-bottom-left-radius: 6px;
+            box-shadow: 0 4px 15px rgba(27, 60, 83, 0.1);
+        }
+
+        .message-text {
+            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .message-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .message-time {
+            opacity: 0.8;
+        }
+
+        .message-time.received {
+            color: var(--dark-grey-light);
+        }
+
+        .message-time.sent {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .message-read {
+            margin-left: 8px;
+            color: var(--success);
+        }
+
+        .message-sender {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 13px;
+            color: var(--dark-grey-light);
+            font-weight: 500;
+        }
+
+        .sender-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--dark-grey-light), var(--dark-grey-medium));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        /* Message Input */
+        .message-input-area {
+            padding: 25px;
+            background: white;
+            border-top: 1px solid var(--dark-grey-ultra-light);
+        }
+
+        .message-form {
+            display: flex;
+            gap: 15px;
+        }
+
+        .message-input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .message-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid var(--dark-grey-ultra-light);
+            border-radius: 16px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: var(--dark-grey-bg);
+            color: var(--dark-grey-dark);
+            resize: none;
+            min-height: 56px;
+            max-height: 120px;
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: var(--dark-grey-light);
+            box-shadow: 0 0 0 3px rgba(69, 104, 130, 0.1);
+            background: white;
+        }
+
+        .send-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 18px;
+            background: linear-gradient(135deg, var(--dark-grey-medium), var(--dark-grey-dark));
+            color: white;
+            box-shadow: 0 6px 20px rgba(35, 76, 106, 0.2);
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(35, 76, 106, 0.3);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 1000;
+            animation: slideInRight 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        .toast.warning {
+            background: var(--warning);
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Scrollbar Styling */
+        .messages-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .messages-list::-webkit-scrollbar-track {
+            background: var(--dark-grey-ultra-light);
+            border-radius: 10px;
+        }
+
+        .messages-list::-webkit-scrollbar-thumb {
+            background: var(--dark-grey-light);
+            border-radius: 10px;
+        }
+
+        .messages-list::-webkit-scrollbar-thumb:hover {
+            background: var(--dark-grey-medium);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .messages-container {
+                border-radius: 16px;
+            }
+            
+            .chat-header {
+                padding: 20px;
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            
+            .message-bubble {
+                max-width: 85%;
+            }
+            
+            .message-actions {
+                flex-direction: column;
+            }
+            
+            .attach-btn, .send-btn {
+                width: 48px;
+                height: 48px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="messages-container">
+        <!-- Chat Header -->
+        <div class="chat-header">
+            <div class="user-info">
+                <a href="{{ route('messages.index') }}" class="back-button">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                
+                <div class="user-avatar">
+                    {{ substr($user->name, 0, 1) }}
                 </div>
-                @endforeach
+                
+                <div class="user-details">
+                    <h2>{{ $user->name }}</h2>
+                    <p>
+                        <span class="role-badge">
+                            {{ $user->isClient() ? 'Client' : 'Freelancer' }}
+                        </span>
+                        <span>
+                            @if($user->isClient())
+                                {{ $user->company ?? 'No company' }}
+                            @else
+                                {{ $user->title ?? 'No title' }}
+                            @endif
+                        </span>
+                    </p>
+                </div>
             </div>
             
-            <!-- Message Form -->
-            <div class="border-t border-gray-200 bg-gray-50 p-4">
-                <form id="message-form" action="{{ route('messages.store', $user) }}" 
-                      method="POST" enctype="multipart/form-data" class="space-y-4">
-                    @csrf
-                    
-                    <!-- Hidden fields for job/contract -->
-                    <input type="hidden" name="job_id" id="job_id_input" value="">
-                    <input type="hidden" name="contract_id" id="contract_id_input" value="">
-                    
-                    <div class="flex items-end space-x-3">
-                        <!-- Attachment Button -->
-                        <div class="relative">
-                            <button type="button" 
-                                    onclick="document.getElementById('attachments').click()"
-                                    class="w-10 h-10 flex items-center justify-center bg-gray-200 
-                                           rounded-full hover:bg-gray-300 transition-colors duration-200
-                                           text-gray-600 hover:text-gray-800">
-                                <i class="fas fa-paperclip"></i>
-                            </button>
-                            <input type="file" name="attachments[]" id="attachments" 
-                                   multiple class="hidden" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
-                            <div id="attachment-preview" class="absolute bottom-full mb-2 bg-white 
-                                  rounded-lg shadow-lg p-3 min-w-[200px] hidden border border-gray-200">
-                                <p class="text-sm font-medium text-gray-700 mb-2">Selected files:</p>
-                                <div id="file-list" class="space-y-1"></div>
-                            </div>
-                        </div>
-                        
-                        <!-- Message Input -->
-                        <div class="flex-grow relative">
-                            <textarea name="message" id="message-input" 
-                                      rows="1"
-                                      placeholder="Type your message here..."
-                                      class="w-full px-4 py-3 bg-white border border-gray-300 
-                                             rounded-xl focus:outline-none focus:border-blue-500 
-                                             focus:ring-2 focus:ring-blue-200 resize-none
-                                             transition-all duration-300"
-                                      oninput="autoResize(this)"></textarea>
-                        </div>
-                        
-                        <!-- Send Button -->
-                        <button type="submit"
-                                id="send-button"
-                                class="w-10 h-10 flex items-center justify-center bg-gradient-to-r 
-                                       from-blue-600 to-blue-500 rounded-full hover:from-blue-700 
-                                       hover:to-blue-600 transition-all duration-300 shadow-md 
-                                       hover:shadow-lg text-white">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </div>
-                    
-                    <!-- Attachment Preview -->
-                    <div id="attachment-preview-container" class="space-y-2 hidden"></div>
-                </form>
-                
-                <!-- Typing Indicator -->
-                <div id="typing-indicator" class="mt-2 hidden animate-pulse">
-                    <div class="flex items-center space-x-1">
-                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
-                        <span class="text-sm text-gray-500 ml-2">{{ $user->name }} is typing...</span>
-                    </div>
-                </div>
-            </div>
+            @if($sharedJobs->count() > 0)
+            <button class="shared-jobs-btn" onclick="toggleSharedJobs()">
+                <i class="fas fa-briefcase"></i>
+                Shared Jobs ({{ $sharedJobs->count() }})
+            </button>
+            @endif
         </div>
+
+        <!-- Messages Area -->
+<!-- Messages Area -->
+<div class="messages-area">
+    <!-- Messages List Container - SINGLE DIV -->
+    <div class="messages-list" id="messages-list">
+        <!-- Loading indicator -->
+        <div id="loading-messages" style="text-align: center; padding: 40px; color: var(--dark-grey-light);">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p style="margin-top: 15px;">Loading messages...</p>
+        </div>
+    </div>
+
+    <!-- Message Input -->
+    <div class="message-input-area">
+        <form method="POST" action="{{ route('messages.store', $user) }}" 
+              class="message-form" id="message-form">
+            @csrf
+            
+            <div class="message-input-wrapper">
+                <textarea name="message" 
+                          placeholder="Type your message here..." 
+                          class="message-input" 
+                          id="message-input" 
+                          rows="1"></textarea>
+            </div>
+            
+            <button type="submit" class="send-btn" id="send-button">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </form>
+    </div>
+</div>
+    <!-- Messages will be loaded by JavaScript -->
+    <div class="loading-messages">
+        <i class="fas fa-spinner fa-spin"></i> Loading messages...
     </div>
 </div>
 
-<!-- JavaScript -->
+            <!-- Message Input -->
+            <div class="message-input-area">
+                <form method="POST" action="{{ route('messages.store', $user) }}" 
+                      class="message-form" id="message-form">
+                    @csrf
+                    
+                    <div class="message-input-wrapper">
+                        <textarea name="message" 
+                                  placeholder="Type your message here..." 
+                                  class="message-input" 
+                                  id="message-input" 
+                                  rows="1"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="send-btn" id="send-button">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
 <script>
-// Auto-resize textarea
-function autoResize(textarea) {
-    textarea.style.height = 'auto';
-    textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
+// CSRF Token
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+const currentUserId = parseInt('{{ Auth::id() ?? 0 }}');
+const recipientId = parseInt('{{ $user->id ?? 0 }}');
+
+console.log('=== DEBUG START ===');
+console.log('Current User ID:', currentUserId, 'Type:', typeof currentUserId);
+console.log('Recipient ID:', recipientId, 'Type:', typeof recipientId);
+console.log('CSRF Token:', csrfToken ? 'Present' : 'Missing');
+
+// Quick test function
+window.testMessages = function() {
+    console.log('=== MANUAL TEST ===');
+    fetch(`/messages/api/with/${recipientId}`)
+        .then(r => r.json())
+        .then(data => {
+            console.log('API Response:', data);
+            if (data.success && data.messages) {
+                console.log('Messages found:', data.messages.length);
+                console.log('First message:', data.messages[0]);
+                alert(`API works! Found ${data.messages.length} messages. Check console for details.`);
+            } else {
+                console.error('API returned error:', data);
+                alert('API error: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(err => {
+            console.error('Fetch error:', err);
+            alert('Fetch failed: ' + err.message);
+        });
+};
+
+// Check authentication on page load
+if (!currentUserId || currentUserId === 0) {
+    console.error('User not authenticated');
+    showToast('Please login to continue', 'error');
+    setTimeout(() => {
+        window.location.href = '/login';
+    }, 1500);
 }
 
-// Handle attachments
-document.getElementById('attachments').addEventListener('change', function(e) {
-    const preview = document.getElementById('attachment-preview');
-    const fileList = document.getElementById('file-list');
-    const container = document.getElementById('attachment-preview-container');
+// Format time function
+function formatTime(dateString) {
+    if (!dateString) return 'Just now';
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return 'Just now';
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    } catch (e) {
+        return 'Just now';
+    }
+}
+
+// Load existing messages on page load
+async function loadExistingMessages() {
+    console.log('=== LOADING MESSAGES ===');
+    console.log('API Endpoint:', `/messages/api/with/${recipientId}`);
     
-    fileList.innerHTML = '';
-    container.innerHTML = '';
-    
-    if (this.files.length > 0) {
-        // Show preview dropdown
-        preview.classList.remove('hidden');
-        
-        Array.from(this.files).forEach((file, index) => {
-            // Add to file list dropdown
-            const fileItem = document.createElement('div');
-            fileItem.className = 'flex items-center justify-between text-xs';
-            fileItem.innerHTML = `
-                <span class="truncate flex-grow">${file.name}</span>
-                <span class="text-gray-500 ml-2">(${(file.size / 1024).toFixed(1)} KB)</span>
-            `;
-            fileList.appendChild(fileItem);
-            
-            // Add to preview container
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const imgPreview = document.createElement('div');
-                    imgPreview.className = 'flex items-center space-x-2 p-2 bg-gray-50 rounded-lg';
-                    imgPreview.innerHTML = `
-                        <img src="${e.target.result}" class="w-12 h-12 object-cover rounded" alt="Preview">
-                        <div class="flex-grow">
-                            <p class="text-sm font-medium truncate">${file.name}</p>
-                            <p class="text-xs text-gray-500">${(file.size / 1024).toFixed(1)} KB</p>
-                        </div>
-                        <button type="button" onclick="removeAttachment(${index})" 
-                                class="text-red-500 hover:text-red-700">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    `;
-                    container.appendChild(imgPreview);
-                };
-                reader.readAsDataURL(file);
-            } else {
-                const docPreview = document.createElement('div');
-                docPreview.className = 'flex items-center space-x-2 p-2 bg-gray-50 rounded-lg';
-                docPreview.innerHTML = `
-                    <div class="w-12 h-12 bg-blue-100 rounded flex items-center justify-center">
-                        <i class="fas fa-file text-blue-500"></i>
-                    </div>
-                    <div class="flex-grow">
-                        <p class="text-sm font-medium truncate">${file.name}</p>
-                        <p class="text-xs text-gray-500">${(file.size / 1024).toFixed(1)} KB</p>
-                    </div>
-                    <button type="button" onclick="removeAttachment(${index})" 
-                            class="text-red-500 hover:text-red-700">
-                        <i class="fas fa-times"></i>
-                    </button>
-                `;
-                container.appendChild(docPreview);
+    try {
+        const response = await fetch(`/messages/api/with/${recipientId}`, {
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
             }
         });
         
-        container.classList.remove('hidden');
+        console.log('Response status:', response.status, response.statusText);
         
-        // Hide preview when clicking outside
-        setTimeout(() => {
-            document.addEventListener('click', function hidePreview(e) {
-                if (!preview.contains(e.target) && e.target.id !== 'attachments') {
-                    preview.classList.add('hidden');
-                    document.removeEventListener('click', hidePreview);
-                }
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('API Data received:', data);
+        
+        const messagesList = document.getElementById('messages-list');
+        if (!messagesList) {
+            console.error('ERROR: messages-list element not found in DOM!');
+            console.log('Available elements:', document.querySelectorAll('*[id]'));
+            return;
+        }
+        
+        console.log('Messages list element found:', messagesList);
+        
+        // Clear loading
+        const loadingElement = document.getElementById('loading-messages');
+        if (loadingElement) {
+            loadingElement.style.display = 'none';
+        }
+        
+        // Clear existing messages
+        messagesList.innerHTML = '';
+        
+        if (data.success && data.messages && data.messages.length > 0) {
+            console.log(`Processing ${data.messages.length} messages`);
+            
+            data.messages.forEach((message, index) => {
+                console.log(`Message ${index + 1}:`, {
+                    id: message.id,
+                    sender_id: message.sender_id,
+                    message: message.message?.substring(0, 50),
+                    created_at: message.created_at
+                });
+                addMessageToUI(message);
             });
-        }, 100);
+            
+            console.log('Total messages in DOM:', document.querySelectorAll('.message-item').length);
+            scrollToBottom();
+            
+        } else {
+            console.log('No messages in response');
+            messagesList.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: var(--dark-grey-light);">
+                    <i class="fas fa-comments fa-3x" style="opacity: 0.5; margin-bottom: 15px;"></i>
+                    <h3 style="margin-bottom: 10px;">No messages yet</h3>
+                    <p>Start the conversation!</p>
+                </div>
+            `;
+        }
+        
+    } catch (error) {
+        console.error('ERROR loading messages:', error);
+        console.error('Error stack:', error.stack);
+        
+        const messagesList = document.getElementById('messages-list');
+        if (messagesList) {
+            messagesList.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: var(--danger);">
+                    <i class="fas fa-exclamation-triangle fa-3x" style="margin-bottom: 15px;"></i>
+                    <h3 style="margin-bottom: 10px;">Failed to load messages</h3>
+                    <p>${error.message}</p>
+                    <button onclick="loadExistingMessages()" style="margin-top: 15px; padding: 10px 20px; background: var(--dark-grey-medium); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        Retry
+                    </button>
+                </div>
+            `;
+        }
     }
-});
-
-function removeAttachment(index) {
-    const dt = new DataTransfer();
-    const input = document.getElementById('attachments');
-    
-    Array.from(input.files).forEach((file, i) => {
-        if (i !== index) dt.items.add(file);
-    });
-    
-    input.files = dt.files;
-    document.getElementById('attachments').dispatchEvent(new Event('change'));
 }
 
-// Handle form submission with AJAX
-document.getElementById('message-form').addEventListener('submit', async function(e) {
-    e.preventDefault();
+// Universal function to add message to UI
+function addMessageToUI(messageData) {
+    console.log('Adding message to UI:', messageData.id);
     
-    const formData = new FormData(this);
-    const messageInput = document.getElementById('message-input');
-    const sendButton = document.getElementById('send-button');
-    const messagesContainer = document.getElementById('messages-container');
-    
-    // Check if message is empty
-    if (!messageInput.value.trim()) {
-        alert('Please enter a message');
+    const messagesList = document.getElementById('messages-list');
+    if (!messagesList) {
+        console.error('Cannot add message: messages-list not found');
         return;
     }
     
-    // Disable button and show loading
-    sendButton.disabled = true;
-    const originalButtonHTML = sendButton.innerHTML;
-    sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    // Determine if message is sent by current user
+    const senderId = messageData.sender_id || (messageData.sender ? messageData.sender.id : null);
+    const isSent = senderId == currentUserId;
     
-    try {
-        const response = await fetch(this.action, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            }
-        });
+    console.log(`Message ${messageData.id}: senderId=${senderId}, currentUserId=${currentUserId}, isSent=${isSent}`);
+    
+    // Get sender name
+    let senderName = 'User';
+    if (messageData.sender_name) {
+        senderName = messageData.sender_name;
+    } else if (messageData.sender && messageData.sender.name) {
+        senderName = messageData.sender.name;
+    } else if (messageData.sender) {
+        senderName = messageData.sender;
+    } else {
+        senderName = isSent ? 'You' : 'User';
+    }
+    
+    // Create message element
+    const messageElement = document.createElement('div');
+    messageElement.className = `message-item ${isSent ? 'message-sent' : 'message-received'}`;
+    messageElement.id = `message-${messageData.id}`;
+    
+    // Build HTML
+    let html = '';
+    
+    // Show sender info for received messages
+    if (!isSent) {
+        html += `
+            <div class="message-sender">
+                <div class="sender-avatar">
+                    ${senderName.charAt(0).toUpperCase()}
+                </div>
+                ${senderName}
+            </div>
+        `;
+    }
+    
+    // Message bubble
+    const messageTime = messageData.formatted_time || 
+                       formatTime(messageData.created_at) || 
+                       'Just now';
+    
+    const messageText = messageData.message || '';
+    
+    html += `
+        <div class="message-bubble ${isSent ? 'sent' : 'received'}">
+            <div class="message-text">${escapeHtml(messageText)}</div>
+            <div class="message-meta">
+                <span class="message-time ${isSent ? 'sent' : 'received'}">
+                    ${messageTime}
+                </span>
+            </div>
+        </div>
+    `;
+    
+    messageElement.innerHTML = html;
+    messagesList.appendChild(messageElement);
+    
+    console.log(`Added message ${messageData.id} to DOM`);
+}
+
+// Helper: Escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Scroll to bottom
+function scrollToBottom() {
+    const messagesList = document.getElementById('messages-list');
+    if (messagesList) {
+        messagesList.scrollTop = messagesList.scrollHeight;
+        console.log('Scrolled to bottom');
+    }
+}
+
+// Setup message form
+function setupMessageForm() {
+    const form = document.getElementById('message-form');
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    
+    if (!form || !messageInput || !sendButton) {
+        console.error('Form elements not found!');
+        console.log('Form:', form);
+        console.log('Message Input:', messageInput);
+        console.log('Send Button:', sendButton);
+        return;
+    }
+    
+    console.log('Form elements found, setting up...');
+    
+    // Auto-resize textarea
+    messageInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        const newHeight = Math.min(this.scrollHeight, 120);
+        this.style.height = newHeight + 'px';
+    });
+    
+    // Auto-focus
+    messageInput.focus();
+    
+    // Form submission
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        console.log('Form submitted');
         
-        const responseText = await response.text();
-        let data;
+        const message = messageInput.value.trim();
+        if (!message) {
+            showToast('Please enter a message', 'warning');
+            return;
+        }
+        
+        // Disable button
+        sendButton.disabled = true;
+        const originalText = sendButton.innerHTML;
+        sendButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
         
         try {
-            data = JSON.parse(responseText);
-        } catch (parseError) {
-            console.error('Failed to parse JSON:', parseError);
-            console.error('Response was:', responseText);
-            throw new Error('Invalid response from server');
-        }
-        
-        if (data.success && data.html) {
-            // Add new message to the container
-            const messageDiv = document.createElement('div');
-            messageDiv.innerHTML = data.html.trim();
+            const formData = new FormData();
+            formData.append('message', message);
+            formData.append('_token', csrfToken);
             
-            if (messageDiv.firstElementChild) {
-                messagesContainer.appendChild(messageDiv.firstElementChild);
-                
-                // Scroll to bottom with smooth animation
-                messagesContainer.scrollTo({
-                    top: messagesContainer.scrollHeight,
-                    behavior: 'smooth'
-                });
-                
-                // Clear form
+            console.log('Sending message to:', `/messages/${recipientId}`);
+            
+            const response = await fetch(`/messages/${recipientId}`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
+            
+            console.log('Send response status:', response.status);
+            
+            const contentType = response.headers.get('content-type');
+            let data;
+            
+            if (contentType && contentType.includes('application/json')) {
+                data = await response.json();
+                console.log('Send response data:', data);
+            } else {
+                const text = await response.text();
+                console.error('Non-JSON response:', text.substring(0, 200));
+                throw new Error('Invalid response format');
+            }
+            
+            if (data.success) {
+                // Clear input
                 messageInput.value = '';
                 messageInput.style.height = 'auto';
-                document.getElementById('attachments').value = '';
                 
-                // Clear preview
-                const previewContainer = document.getElementById('attachment-preview-container');
-                if (previewContainer) {
-                    previewContainer.innerHTML = '';
-                    previewContainer.classList.add('hidden');
+                // Add message to UI
+                if (data.message) {
+                    addMessageToUI(data.message);
+                    scrollToBottom();
                 }
                 
-                // Reset hidden inputs
-                document.getElementById('job_id_input').value = '';
-                document.getElementById('contract_id_input').value = '';
-                
-                // Show success notification
-                showNotification('Message sent successfully!', 'success');
+                showToast('Message sent!', 'success');
+            } else {
+                throw new Error(data.error || 'Failed to send message');
             }
-        } else {
-            const errorMsg = data.error || 'Failed to send message';
-            showNotification(errorMsg, 'error');
-            console.error('Server error:', data);
+            
+        } catch (error) {
+            console.error('Send error:', error);
+            showToast('Error: ' + error.message, 'error');
+        } finally {
+            // Re-enable button
+            sendButton.disabled = false;
+            sendButton.innerHTML = originalText;
         }
-    } catch (error) {
-        console.error('Error:', error);
-        showNotification('Failed to send message. Please try again.', 'error');
-    } finally {
-        // Re-enable button
-        sendButton.disabled = false;
-        sendButton.innerHTML = originalButtonHTML;
-    }
-});
+    });
+    
+    console.log('Form setup complete');
+}
 
-// Notification function
-function showNotification(message, type = 'success') {
-    // Remove existing notifications
-    const existing = document.querySelector('.worknest-notification');
-    if (existing) existing.remove();
+// Toast function
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    if (!container) {
+        console.warn('Toast container not found');
+        return;
+    }
     
-    // Create notification
-    const notification = document.createElement('div');
-    notification.className = `worknest-notification fixed top-4 right-4 px-6 py-4 rounded-lg shadow-xl z-50 animate-fade-in ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white font-medium`;
-    notification.textContent = message;
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
     
-    document.body.appendChild(notification);
+    let icon = 'check-circle';
+    if (type === 'error') icon = 'exclamation-circle';
+    if (type === 'warning') icon = 'exclamation-triangle';
     
-    // Remove after 3 seconds
+    toast.innerHTML = `
+        <i class="fas fa-${icon}"></i>
+        <span>${message}</span>
+    `;
+    
+    container.appendChild(toast);
+    
     setTimeout(() => {
-        notification.style.opacity = '0';
-        notification.style.transition = 'opacity 0.3s';
-        setTimeout(() => notification.remove(), 300);
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
 
-// Auto-scroll to bottom on page load
-window.addEventListener('load', function() {
-    const messagesContainer = document.getElementById('messages-container');
-    if (messagesContainer) {
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
-});
-
-// Handle job/contract selection
-document.querySelectorAll('input[name="job_id"], input[name="contract_id"]').forEach(input => {
-    input.addEventListener('change', function() {
-        if (this.name === 'job_id') {
-            document.getElementById('job_id_input').value = this.value;
-            document.getElementById('contract_id_input').value = '';
-        } else {
-            document.getElementById('contract_id_input').value = this.value;
-            document.getElementById('job_id_input').value = '';
-        }
-    });
-});
-
-// Ensure CSRF token exists
+// Initialize everything
 document.addEventListener('DOMContentLoaded', function() {
-    const csrfToken = document.querySelector('meta[name="csrf-token"]');
-    if (!csrfToken) {
-        console.error('CSRF token meta tag is missing!');
-        // Try to add it dynamically
-        const meta = document.createElement('meta');
-        meta.name = 'csrf-token';
-        meta.content = '{{ csrf_token() }}';
-        document.head.appendChild(meta);
-    }
+    console.log('=== DOM CONTENT LOADED ===');
+    
+    // Add test button
+    const testBtn = document.createElement('button');
+    testBtn.innerHTML = '🔄 Test';
+    testBtn.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 10px 15px; background: #234C6A; color: white; border: none; border-radius: 8px; cursor: pointer;';
+    testBtn.onclick = testMessages;
+    document.body.appendChild(testBtn);
+    
+    setupMessageForm();
+    loadExistingMessages();
+    
+    console.log('Initialization complete');
 });
+
+// Poll for new messages
+setInterval(() => {
+    console.log('Polling for new messages...');
+    loadExistingMessages();
+}, 30000); // Check every 30 seconds
+
+console.log('=== DEBUG END ===');
 </script>
-
-<!-- Add CSS animations -->
-<style>
-@keyframes fadeInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.animate-fade-in-down {
-    animation: fadeInDown 0.5s ease-out;
-}
-
-.animate-slide-up {
-    animation: slideUp 0.5s ease-out;
-}
-
-.animate-fade-in {
-    animation: fadeIn 0.3s ease-out;
-}
-
-.message-item {
-    animation: fadeInUp 0.3s ease-out;
-}
-
-/* Custom scrollbar */
-#messages-container::-webkit-scrollbar {
-    width: 6px;
-}
-
-#messages-container::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-}
-
-#messages-container::-webkit-scrollbar-thumb {
-    background: #456882;
-    border-radius: 10px;
-}
-
-#messages-container::-webkit-scrollbar-thumb:hover {
-    background: #234C6A;
-}
-
-/* Smooth scrolling */
-#messages-container {
-    scroll-behavior: smooth;
-}
-
-/* Notification animation */
-.worknest-notification {
-    animation: fadeIn 0.3s ease-out;
-}
-</style>
-@endsection
+</body>
+</html>
