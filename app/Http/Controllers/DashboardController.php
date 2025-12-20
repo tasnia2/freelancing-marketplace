@@ -25,49 +25,56 @@ class DashboardController extends Controller
     }
     
     // Change from PRIVATE to PUBLIC - This will be called from routes
-    public function freelancerDashboard()
-    {
-        $user = Auth::user();
-        
-        // Only freelancers can access this
-        if ($user->role !== 'freelancer') {
-            abort(403, 'Access denied. Freelancer access only.');
-        }
-        
-        // Stats
-        $stats = [
-            'total_earnings' => $user->total_earnings ?? 0, 
-            'active_proposals' => $user->proposals()->where('status', 'pending')->count(),
-            'accepted_proposals' => $user->proposals()->where('status', 'accepted')->count(),
-            'completed_jobs' => $user->acceptedProposals()->whereHas('job', function($q) {
-                $q->where('status', 'completed');
-            })->count(),
-            'profile_completeness' => $this->calculateProfileCompleteness($user),
-        ];
-        
-        // Recommended jobs
-        $recommendedJobs = MarketplaceJob::where('status', 'open')
-            ->whereDoesntHave('proposals', function($query) use ($user) {
-                $query->where('freelancer_id', $user->id);
-            })
-            ->latest()
-            ->take(5)
-            ->get();
-            
-        // Recent proposals
-        $activities = $user->proposals()
-            ->with('job')
-            ->latest()
-            ->take(5)
-            ->get();
-
-        return view('dashboard.freelancer.index', [
-            'stats' => $stats,
-            'recommendedJobs' => $recommendedJobs,
-            'activities' => $activities,
-            'user' => $user,
-        ]);
+   public function freelancerDashboard()
+{
+    $user = Auth::user();
+    
+    // Only freelancers can access this
+    if ($user->role !== 'freelancer') {
+        abort(403, 'Access denied. Freelancer access only.');
     }
+    
+    // Stats - ADD MISSING KEYS
+    $stats = [
+        'total_earnings' => $user->total_earnings ?? 0, 
+        'active_proposals' => $user->proposals()->where('status', 'pending')->count(),
+        'accepted_proposals' => $user->proposals()->where('status', 'accepted')->count(),
+        'completed_jobs' => $user->acceptedProposals()->whereHas('job', function($q) {
+            $q->where('status', 'completed');
+        })->count(),
+        'profile_completeness' => $this->calculateProfileCompleteness($user),
+        'profile_views' => 0, // Add this
+        'active_contracts' => 0, // Add this
+        'new_jobs_today' => 0, // Add this
+    ];
+    
+    // Recommended jobs
+    $recommendedJobs = MarketplaceJob::where('status', 'open')
+        ->whereDoesntHave('proposals', function($query) use ($user) {
+            $query->where('freelancer_id', $user->id);
+        })
+        ->latest()
+        ->take(8) // Changed from 5 to 8 to match view
+        ->get();
+        
+    // Recent proposals
+    $activities = $user->proposals()
+        ->with('job')
+        ->latest()
+        ->take(5)
+        ->get();
+
+    // ✅ ADD THIS: Get user's notifications
+    $notifications = $user->notifications()->latest()->take(10)->get();
+
+    return view('dashboard.freelancer.index', [
+        'stats' => $stats,
+        'recommendedJobs' => $recommendedJobs,
+        'activities' => $activities,
+        'user' => $user,
+        'notifications' => $notifications, // ✅ CRITICAL: Add this line
+    ]);
+}
     
     // Change from PRIVATE to PUBLIC
     // public function clientDashboard()

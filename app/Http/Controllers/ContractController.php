@@ -45,15 +45,21 @@ class ContractController extends Controller
     }
 
     // Create contract page
-    public function create(MarketplaceJob $job, User $freelancer)
-    {
-        // Check if client owns the job
-        if ($job->client_id !== Auth::id()) {
-            abort(403);
-        }
-        
-        return view('dashboard.client.contracts-create', compact('job', 'freelancer'));
+ public function create(MarketplaceJob $job, User $freelancer)
+{
+    // Check if client owns the job
+    if ($job->client_id !== Auth::id()) {
+        abort(403);
     }
+    
+    // ✅ ADD THIS: Get contracts for the view
+    $contracts = Contract::where('client_id', Auth::id())
+        ->latest()
+        ->paginate(10);
+    
+    // ✅ UPDATE THIS: Add 'contracts' to compact()
+    return view('dashboard.client.contracts-create', compact('job', 'freelancer', 'contracts'));
+}
 
     // Store contract
     public function store(Request $request)
@@ -128,4 +134,5 @@ $contract = Contract::updateOrCreate(
         
         return redirect()->back()->with('success', 'Contract marked as completed!');
     }
+
 }
