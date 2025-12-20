@@ -1,29 +1,26 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <div>
-                <h2 class="font-bold text-2xl text-gray-800 dark:text-white leading-tight">
-                    Freelancer Directory
-                </h2>
-                <p class="text-gray-600 dark:text-gray-400 mt-1">
-                    Find and hire talented freelancers
-                </p>
-            </div>
-            <div class="flex items-center space-x-3">
-                <button onclick="openAdvancedFilters()"
-                        class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-2">
-                    <i class="fas fa-sliders-h text-[#456882]"></i>
-                    <span>Advanced Filters</span>
-                </button>
-                <a href="{{ route('client.jobs.create') }}" 
-                   class="px-4 py-2 bg-gradient-to-r from-[#1B3C53] to-[#234C6A] text-white rounded-lg hover:from-[#234C6A] hover:to-[#456882] transition-all duration-300 flex items-center space-x-2">
-                    <i class="fas fa-briefcase"></i>
-                    <span>Post a Job</span>
-                </a>
-            </div>
-        </div>
-    </x-slot>
+@extends('layouts.client')
 
+@section('title', 'Find Freelancers | WorkNest')
+
+@section('page-title', 'Freelancer Directory')
+@section('page-description', 'Find and hire talented freelancers')
+
+@section('header-actions')
+    <div class="flex items-center space-x-3">
+        <button onclick="openAdvancedFilters()"
+                class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-2">
+            <i class="fas fa-sliders-h text-[#456882]"></i>
+            <span>Advanced Filters</span>
+        </button>
+        <a href="{{ route('client.jobs.create') }}" 
+           class="px-4 py-2 bg-gradient-to-r from-[#1B3C53] to-[#234C6A] text-white rounded-lg hover:from-[#234C6A] hover:to-[#456882] transition-all duration-300 flex items-center space-x-2">
+            <i class="fas fa-briefcase"></i>
+            <span>Post a Job</span>
+        </a>
+    </div>
+@endsection
+
+@section('content')
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
@@ -204,20 +201,19 @@
                             <div>
                                 <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Skills</h4>
                                 <div class="flex flex-wrap gap-2">
-                                    {{-- Line 208 fix --}}
-@if($freelancer->profile && !empty($freelancer->profile->skills))
-    @php
-        $skills = is_array($freelancer->profile->skills) 
-            ? $freelancer->profile->skills 
-            : json_decode($freelancer->profile->skills, true);
-        $skills = $skills ?? [];
-    @endphp
-    
-    @foreach(array_slice($skills, 0, 4) as $skill)
-        <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full text-sm">
-            {{ is_array($skill) ? $skill['name'] ?? $skill : $skill }}
-        </span>
-    @endforeach
+                                    @if($freelancer->profile && !empty($freelancer->profile->skills))
+                                        @php
+                                            $skills = is_array($freelancer->profile->skills) 
+                                                ? $freelancer->profile->skills 
+                                                : json_decode($freelancer->profile->skills, true);
+                                            $skills = $skills ?? [];
+                                        @endphp
+                                        
+                                        @foreach(array_slice($skills, 0, 4) as $skill)
+                                            <span class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full text-sm">
+                                                {{ is_array($skill) ? $skill['name'] ?? $skill : $skill }}
+                                            </span>
+                                        @endforeach
                                     @else
                                         <span class="text-gray-400 italic">No skills listed</span>
                                     @endif
@@ -359,62 +355,92 @@
         <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div class="p-6">
                 <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Invite to Job</h3>
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white">Hire This Freelancer</h3>
                     <button onclick="closeInviteModal()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
                 <div id="inviteModalContent">
-                    <!-- Content will be loaded via AJAX -->
+                    <!-- Content will be loaded via JavaScript -->
                 </div>
             </div>
         </div>
     </div>
+@endsection
 
-    @push('scripts')
-    <script>
-        function openAdvancedFilters() {
-            document.getElementById('advancedFilters').classList.toggle('hidden');
-        }
+@push('scripts')
+<script>
+    function openAdvancedFilters() {
+        document.getElementById('advancedFilters').classList.toggle('hidden');
+    }
+    
+    function clearFilters() {
+        window.location.href = "{{ route('client.freelancers') }}";
+    }
+    
+    function inviteToJob(freelancerId) {
+        const modalContent = `
+            <div class="space-y-4">
+                <div class="text-center mb-4">
+                    <div class="w-16 h-16 mx-auto rounded-full bg-gradient-to-r from-[#1B3C53] to-[#456882] flex items-center justify-center text-white text-xl mb-3">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <h4 class="text-lg font-semibold text-gray-800 dark:text-white">Hire This Freelancer</h4>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                        Choose how you'd like to work with this freelancer
+                    </p>
+                </div>
+                
+                <div class="space-y-3">
+                    <a href="{{ route('client.jobs.create') }}?freelancer_id=${freelancerId}" 
+                       class="block w-full px-4 py-3 bg-gradient-to-r from-[#1B3C53] to-[#234C6A] text-white rounded-lg hover:from-[#234C6A] hover:to-[#456882] transition-all duration-300 text-center">
+                        <i class="fas fa-plus mr-2"></i>Create New Job for This Freelancer
+                    </a>
+                    
+                    <a href="{{ route('messages.show', '') }${freelancerId}" 
+                       class="block w-full px-4 py-3 border border-[#456882] text-[#1B3C53] dark:text-white rounded-lg hover:bg-[#E3E3E3] dark:hover:bg-[#2a3b4a] transition-all duration-300 text-center">
+                        <i class="fas fa-comment mr-2"></i>Send Direct Message
+                    </a>
+                    
+                    <button onclick="closeInviteModal()"
+                            class="w-full px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                        <i class="fas fa-times mr-2"></i>Cancel
+                    </button>
+                </div>
+            </div>
+        `;
         
-        function clearFilters() {
-            window.location.href = "{{ route('client.freelancers') }}";
+        document.getElementById('inviteModalContent').innerHTML = modalContent;
+        document.getElementById('inviteModal').classList.remove('hidden');
+    }
+    
+    function closeInviteModal() {
+        document.getElementById('inviteModal').classList.add('hidden');
+    }
+    
+    // Close modal when clicking outside
+    document.getElementById('inviteModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeInviteModal();
         }
-        
-        function inviteToJob(freelancerId) {
-            fetch(`/client/freelancers/${freelancerId}/invite-modal`)
-                .then(response => response.text())
-                .then(html => {
-                    document.getElementById('inviteModalContent').innerHTML = html;
-                    document.getElementById('inviteModal').classList.remove('hidden');
-                });
-        }
-        
-        function closeInviteModal() {
-            document.getElementById('inviteModal').classList.add('hidden');
-        }
-        
-        // Close modal when clicking outside
-        document.getElementById('inviteModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeInviteModal();
-            }
+    });
+    
+    // Freelancer card animations
+    document.querySelectorAll('.hover-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.boxShadow = '0 20px 40px rgba(27, 60, 83, 0.15)';
         });
         
-        // Freelancer card animations
-        document.querySelectorAll('.hover-card').forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.boxShadow = '0 20px 40px rgba(27, 60, 83, 0.15)';
-            });
-            
-            card.addEventListener('mouseleave', function() {
-                this.style.boxShadow = '';
-            });
+        card.addEventListener('mouseleave', function() {
+            this.style.boxShadow = '';
         });
-        
-        // Search debounce
-        let searchTimeout;
-        document.querySelector('input[name="search"]').addEventListener('input', function(e) {
+    });
+    
+    // Search debounce
+    let searchTimeout;
+    const searchInput = document.querySelector('input[name="search"]');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 if (e.target.value.length > 2 || e.target.value.length === 0) {
@@ -422,99 +448,93 @@
                 }
             }, 500);
         });
-        
-        // Filter by skills
-        document.querySelectorAll('.skill-tag').forEach(tag => {
-            tag.addEventListener('click', function() {
-                const skill = this.textContent.trim();
-                const url = new URL(window.location.href);
-                url.searchParams.set('skills', skill);
-                window.location.href = url.toString();
-            });
+    }
+    
+    // Filter by skills
+    document.querySelectorAll('.skill-tag').forEach(tag => {
+        tag.addEventListener('click', function() {
+            const skill = this.textContent.trim();
+            const url = new URL(window.location.href);
+            url.searchParams.set('skills', skill);
+            window.location.href = url.toString();
         });
-    </script>
-    @endpush
+    });
+</script>
+@endpush
 
-    @push('styles')
-    <style>
-        .hover-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .line-clamp-2 {
-           display: -webkit-box;
-            display: -moz-box;
-            display: box;
-            -webkit-line-clamp: 2;
-            -moz-line-clamp: 2;
-            line-clamp: 2; /* Standard property */
-            -webkit-box-orient: vertical;
-            -moz-box-orient: vertical;
-            box-orient: vertical;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .skill-tag {
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-        
-        .skill-tag:hover {
-            background: linear-gradient(135deg, #1B3C53, #456882);
-            color: white;
-            transform: translateY(-2px);
-        }
-        
-        .freelancer-card {
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .freelancer-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #1B3C53, #456882);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .freelancer-card:hover::before {
-            opacity: 1;
-        }
-        
-        .rating-stars {
-            position: relative;
-        }
-        
-        .rating-stars::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            animation: shimmer 3s infinite;
-        }
-        
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-        
-        .availability-dot {
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-    </style>
-    @endpush
-</x-app-layout>
+@push('styles')
+<style>
+    .hover-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .skill-tag {
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    
+    .skill-tag:hover {
+        background: linear-gradient(135deg, #1B3C53, #456882);
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .freelancer-card {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .freelancer-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #1B3C53, #456882);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .freelancer-card:hover::before {
+        opacity: 1;
+    }
+    
+    .rating-stars {
+        position: relative;
+    }
+    
+    .rating-stars::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        animation: shimmer 3s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    
+    .availability-dot {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+</style>
+@endpush

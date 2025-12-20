@@ -460,10 +460,12 @@ select[name="type"] {
                     </div>
                     <div class="flex items-center space-x-4">
                         <div class="relative group">
-                            <button class="px-4 py-2 bg-gradient-to-r from-[#1B3C53] to-[#234C6A] text-white rounded-xl hover:from-[#234C6A] hover:to-[#456882] transition-all duration-300 shadow-lg hover:shadow-xl flex items-center space-x-2">
-                                <i class="fas fa-plus"></i>
-                                <span>Post New Job</span>
-                            </button>
+                            <a href="{{ route('client.jobs.create') }}">
+    <button class="px-4 py-2 bg-gradient-to-r from-[#1B3C53] to-[#234C6A] text-white rounded-xl hover:from-[#234C6A] hover:to-[#456882] transition-all duration-300 shadow-lg hover:shadow-xl flex items-center space-x-2">
+        <i class="fas fa-plus"></i>
+        <span>Post New Job</span>
+    </button>
+</a>
                             <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
                                 Hire freelancers
                                 <div class="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">

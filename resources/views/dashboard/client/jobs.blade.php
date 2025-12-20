@@ -1,17 +1,20 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-bold text-2xl text-gray-800 dark:text-white leading-tight">
-                My Jobs
-            </h2>
-            <a href="{{ route('client.jobs.create') }}" 
-               class="px-4 py-2 bg-gradient-to-r from-[#1B3C53] to-[#234C6A] text-white rounded-lg hover:from-[#234C6A] hover:to-[#456882] transition-all duration-300 flex items-center space-x-2 shadow-lg">
-                <i class="fas fa-plus"></i>
-                <span>Post New Job</span>
-            </a>
-        </div>
-    </x-slot>
+{{-- Instead of <x-app-layout>, use your client layout --}}
+@extends('layouts.client')
 
+@section('title', 'My Jobs | WorkNest')
+
+@section('page-title', 'My Jobs')
+@section('page-description', 'Manage your posted jobs and proposals')
+
+@section('header-actions')
+    <a href="{{ route('client.jobs.create') }}" 
+       class="px-4 py-2 bg-gradient-to-r from-[#1B3C53] to-[#234C6A] text-white rounded-lg hover:from-[#234C6A] hover:to-[#456882] transition-all duration-300 flex items-center space-x-2 shadow-lg">
+        <i class="fas fa-plus"></i>
+        <span>Post New Job</span>
+    </a>
+@endsection
+
+@section('content')
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
@@ -89,7 +92,7 @@
                                             </a>
                                             <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                                                 <i class="fas fa-clock mr-1"></i>
-                                                {{ $job->project_length_text }}
+                                                {{ $job->project_length_text ?? 'N/A' }}
                                             </div>
                                         </div>
                                     </div>
@@ -106,9 +109,9 @@
                                 <td class="px-6 py-4">
                                     <div class="flex items-center">
                                         <span class="text-lg font-semibold text-gray-800 dark:text-white">
-                                            {{ $job->proposals_count }}
+                                            {{ $job->proposals_count ?? 0 }}
                                         </span>
-                                        @if($job->proposals_count > 0)
+                                        @if(($job->proposals_count ?? 0) > 0)
                                         <a href="{{ route('client.proposals') }}?job_id={{ $job->id }}" 
                                            class="ml-2 text-sm text-[#456882] hover:text-[#1B3C53] dark:text-gray-400 dark:hover:text-white">
                                             View
@@ -118,7 +121,11 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="text-lg font-bold text-[#234C6A] dark:text-[#456882]">
-                                        {{ $job->formatted_budget ?? 'Fixed' }}
+                                        @if($job->job_type === 'hourly')
+                                            ${{ number_format($job->hourly_rate, 2) }}/hour
+                                        @else
+                                            ${{ number_format($job->budget, 2) }}
+                                        @endif
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
@@ -189,7 +196,7 @@
                         <div>
                             <p class="text-[#E3E3E3] text-sm">Total Proposals Received</p>
                             <h3 class="text-2xl font-bold mt-1">
-                                {{ collect($jobStats)->sum() > 0 ? number_format($jobStats['all'] * 2) : 0 }}
+                                {{ $jobStats['all'] * 2 ?? 0 }}
                             </h3>
                         </div>
                     </div>
@@ -222,13 +229,16 @@
 
         </div>
     </div>
+@endsection
 
-    @push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Search debounce
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Search debounce
+        const searchInput = document.querySelector('input[name="search"]');
+        if (searchInput) {
             let searchTimeout;
-            document.querySelector('input[name="search"]').addEventListener('input', function(e) {
+            searchInput.addEventListener('input', function(e) {
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(() => {
                     if (e.target.value.length > 2 || e.target.value.length === 0) {
@@ -236,98 +246,93 @@
                     }
                 }, 500);
             });
+        }
 
-            // Status filter animation
-            document.querySelectorAll('a[href*="status="]').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    const currentStatus = new URLSearchParams(window.location.search).get('status');
-                    const newStatus = new URLSearchParams(this.href.split('?')[1]).get('status');
-                    
-                    if (currentStatus === newStatus) {
-                        e.preventDefault();
-                    }
-                });
-            });
-
-            // Row hover effects
-            document.querySelectorAll('tbody tr').forEach(row => {
-                row.addEventListener('mouseenter', function() {
-                    this.style.backgroundColor = getComputedStyle(document.documentElement)
-                        .getPropertyValue('--light-bg') + '20';
-                });
+        // Status filter animation
+        document.querySelectorAll('a[href*="status="]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                const currentStatus = new URLSearchParams(window.location.search).get('status');
+                const newStatus = new URLSearchParams(this.href.split('?')[1]).get('status');
                 
-                row.addEventListener('mouseleave', function() {
-                    this.style.backgroundColor = '';
-                });
-            });
-
-            // Delete confirmation
-            document.querySelectorAll('form[onsubmit*="confirm"]').forEach(form => {
-                form.addEventListener('submit', function(e) {
-                    if (!confirm('Are you sure you want to delete this job? This action cannot be undone.')) {
-                        e.preventDefault();
-                    }
-                });
+                if (currentStatus === newStatus) {
+                    e.preventDefault();
+                }
             });
         });
-    </script>
-    @endpush
 
-    @push('styles')
-    <style>
-        :root {
-            --light-bg: #E3E3E3;
-        }
+        // Row hover effects
+        document.querySelectorAll('tbody tr').forEach(row => {
+            row.addEventListener('mouseenter', function() {
+                if (document.documentElement.classList.contains('dark')) {
+                    this.style.backgroundColor = 'rgba(42, 59, 74, 0.5)';
+                } else {
+                    this.style.backgroundColor = 'rgba(227, 227, 227, 0.2)';
+                }
+            });
+            
+            row.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = '';
+            });
+        });
 
-        .dark {
-            --light-bg: #2a3b4a;
-        }
+        // Delete confirmation
+        document.querySelectorAll('form[onsubmit*="confirm"]').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                if (!confirm('Are you sure you want to delete this job? This action cannot be undone.')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    });
+</script>
+@endpush
 
-        table tbody tr {
-            transition: all 0.2s ease;
-        }
+@push('styles')
+<style>
+    table tbody tr {
+        transition: all 0.2s ease;
+    }
 
-        .status-badge {
-            position: relative;
-            overflow: hidden;
-        }
+    .status-badge {
+        position: relative;
+        overflow: hidden;
+    }
 
-        .status-badge::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-            animation: shimmer 3s infinite;
-        }
+    .status-badge::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+        animation: shimmer 3s infinite;
+    }
 
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
 
-        .hover-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+    .hover-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-        .hover-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(27, 60, 83, 0.1);
-        }
+    .hover-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(27, 60, 83, 0.1);
+    }
 
-        .dark .hover-card:hover {
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-        }
+    .dark .hover-card:hover {
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
 
-        .action-btn {
-            transition: all 0.2s ease;
-        }
+    .action-btn {
+        transition: all 0.2s ease;
+    }
 
-        .action-btn:hover {
-            transform: scale(1.1);
-        }
-    </style>
-    @endpush
-</x-app-layout>
+    .action-btn:hover {
+        transform: scale(1.1);
+    }
+</style>
+@endpush
