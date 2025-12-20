@@ -11,17 +11,32 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SavedJobController;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth; // ADD THIS LINE
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\SearchController;
+use Illuminate\Support\Str;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search.results'); // MOVED HERE
 Route::get('/api/search/suggestions', [SearchController::class, 'suggestions'])->name('search.suggestions'); 
-// At the top of your routes file (outside any middleware groups):
-
+Route::get('/debug-session', function() {
+    dd(session()->all());
+});
+// Demo reset password route (for direct access)
+// Simple demo reset route
+Route::get('/demo-reset', function() {
+    $token = 'demo-token-' . time();
+    $email = 'demo@example.com';
+    
+    return redirect()->route('password.reset', [
+        'token' => $token,
+        'email' => $email
+    ]);
+})->name('demo.reset');
 
 // Auth routes
 require __DIR__.'/auth.php';
+// Add this in the public routes section (outside of middleware)
+Route::get('/freelancers/{user}', [ProfileController::class, 'publicShow'])->name('freelancers.public.show');
 
 // Protected routes
 Route::middleware(['auth'])->group(function () {
@@ -65,6 +80,20 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/contracts/{contract}/complete', [ContractController::class, 'complete'])->name('contracts.complete');
         Route::get('/contracts', [ContractController::class, 'index'])->name('contracts'); // FIXED: removed freelancerIndex
         Route::get('/contracts/{contract}', [ContractController::class, 'show'])->name('contracts.show');
+
+        // Route::get('/', [MessageController::class, 'index'])->name('index');
+        
+        // // Individual chat view
+        // Route::get('/{user}', [MessageController::class, 'show'])->name('show');
+        
+        // // Send message
+        // Route::post('/{user}', [MessageController::class, 'store'])->name('store');
+        
+        // // API routes
+        // Route::get('/api/conversations', [MessageController::class, 'getConversationsApi'])->name('api.conversations');
+        // Route::get('/api/unread-count', [MessageController::class, 'getUnreadCount'])->name('api.unread-count');
+        // Route::post('/{user}/mark-read', [MessageController::class, 'markAllAsRead'])->name('mark-read');
+    
         
         
         // Freelancers Directory
@@ -87,6 +116,7 @@ Route::middleware(['auth'])->group(function () {
         
         // Proposals
         Route::get('/freelancer/proposals', [ProposalController::class, 'freelancerIndex'])->name('freelancer.proposals');
+         Route::get('/profile/{user?}', [ProfileController::class, 'show'])->name('freelancer.profile-show');
         
         // ========== SAVED JOBS ROUTES ==========
         Route::get('/freelancer/saved-jobs', function() {
@@ -131,14 +161,42 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/contracts/{contract}', [ContractController::class, 'show'])->name('contracts.show');
     });
     
-    // Messaging routes (for both roles)
-    Route::prefix('messages')->name('messages.')->group(function () {
-        Route::get('/', [MessageController::class, 'index'])->name('index');
-        Route::get('/{user}', [MessageController::class, 'show'])->name('show');
-        Route::post('/{user}', [MessageController::class, 'store'])->name('store');
-        Route::post('/{user}/mark-read', [MessageController::class, 'markAllAsRead'])->name('mark-read');
-        Route::get('/api/conversations', [MessageController::class, 'getConversations']);
-        Route::get('/api/unread-count', [MessageController::class, 'getUnreadCount']);
+   // In web.php - Replace your current messages routes with this:
+
+Route::prefix('messages')->name('messages.')->middleware('auth')->group(function () {
+    Route::get('/', [MessageController::class, 'index'])->name('index');
+    Route::get('/{user}', [MessageController::class, 'show'])->name('show');
+    Route::post('/{user}', [MessageController::class, 'store'])->name('store');
+    
+    // API routes
+    Route::get('/api/conversations', [MessageController::class, 'getConversationsApi'])->name('api.conversations');
+    Route::get('/api/unread-count', [MessageController::class, 'getUnreadCount'])->name('api.unread-count');
+    Route::post('/{user}/mark-read', [MessageController::class, 'markAllAsRead'])->name('mark-read');
+    
+    // Add this for message polling/refreshing
+    Route::get('/api/with/{user}', [MessageController::class, 'getMessagesApi'])->name('api.messages');
+});
+
+    
+    // Add this user API route
+    Route::get('/api/users/all', function() {
+        try {
+            $currentUserId = Auth::id();
+            $users = App\Models\User::where('id', '!=', $currentUserId)
+                ->orderBy('role')
+                ->orderBy('name')
+                ->get(['id', 'name', 'email', 'role', 'company', 'title', 'avatar', 'created_at']);
+                
+            return response()->json([
+                'success' => true,
+                'users' => $users
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
     });
     
     // Settings Routes (for both roles)
