@@ -92,6 +92,10 @@ This architecture ensures scalability, maintainability, and clean separation of 
 
 ---
 
+## 🗄️ Flowchart
+
+![System Flowchart](flowchart.png)
+
 ## 🚀 Installation & Setup
 
 ### Prerequisites
@@ -106,7 +110,7 @@ This architecture ensures scalability, maintainability, and clean separation of 
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/freelance-job-marketplace.git
+git clone https://github.com/tasnia2/freelance-job-marketplace.git
 
 # Navigate to project directory
 cd freelance-job-marketplace
@@ -149,6 +153,8 @@ Role-based middleware (client, freelancer)
 Input validation
 
 Secure session handling
+
+
 
 📈 Future Enhancements
 
