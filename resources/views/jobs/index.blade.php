@@ -1,4 +1,32 @@
-<x-app-layout>
+@php
+    // Get user info once
+    $user = auth()->user();
+    $isFreelancer = $user && ($user->role === 'freelancer' || $user->user_type === 'freelancer');
+    $isClient = $user && ($user->role === 'client' || $user->user_type === 'client');
+    
+    // Set colors based on role
+    if ($isFreelancer) {
+        // Purple theme for freelancers
+        $primaryColor = 'purple';
+        $primary600 = '#8B5EF0';
+        $primary700 = '#7B4EE0';
+        $primary800 = '#6B3ED0';
+        $textColorClass = 'text-purple-600';
+        $bgGradientClass = 'bg-gradient-to-r from-purple-600 to-purple-800';
+        $hoverGradientClass = 'hover:from-purple-700 hover:to-purple-900';
+        $focusRingClass = 'focus:ring-purple-500';
+    } else {
+        // Blue theme for clients and guests (original)
+        $primaryColor = 'blue';
+        $primary600 = '#1B3C53';
+        $primary700 = '#234C6A';
+        $primary800 = '#456882';
+        $textColorClass = 'text-[#456882]';
+        $bgGradientClass = 'bg-gradient-to-r from-[#1B3C53] to-[#234C6A]';
+        $hoverGradientClass = 'hover:from-[#234C6A] hover:to-[#456882]';
+        $focusRingClass = 'focus:ring-[#1B3C53]';
+    }
+@endphp<x-app-layout>
     <!-- Store user type in a hidden element -->
     @auth
         <div id="current-user-type" data-user-type="{{ auth()->user()->user_type }}" class="hidden"></div>

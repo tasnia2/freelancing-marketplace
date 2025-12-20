@@ -82,27 +82,98 @@
                         </div>
                         
                         <!-- Attachments -->
-                        @if($job->attachments && count($job->attachments) > 0)
-                            <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-                                <h4 class="font-bold text-gray-800 dark:text-white mb-4">Attachments</h4>
-                                <div class="space-y-3">
-                                    @foreach($job->attachments as $attachment)
-                                        <a href="{{ Storage::url($attachment['path']) }}" 
-                                           target="_blank"
-                                           class="flex items-center p-4 border border-gray-300 dark:border-gray-600 rounded-lg hover:border-[#456882] transition-colors">
-                                            <div class="w-12 h-12 rounded-lg bg-gradient-to-r from-[#1B3C53]/10 to-[#456882]/10 dark:from-[#1B3C53]/20 dark:to-[#456882]/20 flex items-center justify-center mr-4">
-                                                <i class="fas fa-file text-[#456882]"></i>
-                                            </div>
-                                            <div class="flex-1">
-                                                <div class="font-medium text-gray-800 dark:text-white">{{ $attachment['name'] }}</div>
-                                                <div class="text-sm text-gray-500 dark:text-gray-400">{{ $attachment['type'] }} • {{ number_format($attachment['size'] / 1024, 2) }} KB</div>
-                                            </div>
-                                            <i class="fas fa-download text-[#456882]"></i>
-                                        </a>
-                                    @endforeach
+@if($job->attachments && count($job->attachments) > 0)
+    <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+        <h4 class="font-bold text-gray-800 dark:text-white mb-4">Attachments ({{ count($job->attachments) }})</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            @foreach($job->attachments as $attachment)
+                @php
+                    // Check if file is an image
+                    $isImage = in_array(strtolower(pathinfo($attachment['name'], PATHINFO_EXTENSION)), 
+                        ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg']);
+                    
+                    // Get the full URL for the file
+                    $fileUrl = Storage::url($attachment['path']);
+                @endphp
+                
+                @if($isImage)
+                    <!-- Image Preview -->
+                    <div class="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden hover:border-[#456882] transition-colors">
+                        <a href="{{ $fileUrl }}" 
+                           target="_blank" 
+                           class="block relative group">
+                            <div class="aspect-video bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                                <img src="{{ $fileUrl }}" 
+                                     alt="{{ $attachment['name'] }}"
+                                     class="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105">
+                            </div>
+                            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                <div class="bg-white/90 dark:bg-gray-800/90 p-2 rounded-full">
+                                    <i class="fas fa-expand text-[#456882]"></i>
                                 </div>
                             </div>
-                        @endif
+                        </a>
+                        <div class="p-3 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-medium text-gray-800 dark:text-white truncate">{{ $attachment['name'] }}</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">{{ number_format($attachment['size'] / 1024, 2) }} KB</div>
+                                </div>
+                                <a href="{{ $fileUrl }}" 
+                                   download
+                                   class="p-2 text-[#456882] hover:text-[#1B3C53] dark:text-gray-400 dark:hover:text-white transition-colors"
+                                   title="Download">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <!-- Regular File -->
+                    <a href="{{ $fileUrl }}" 
+                       target="_blank"
+                       class="flex items-center p-4 border border-gray-300 dark:border-gray-600 rounded-lg hover:border-[#456882] transition-colors bg-white dark:bg-gray-800 group">
+                        <div class="w-12 h-12 rounded-lg bg-gradient-to-r from-[#1B3C53]/10 to-[#456882]/10 dark:from-[#1B3C53]/20 dark:to-[#456882]/20 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
+                            @php
+                                $extension = strtolower(pathinfo($attachment['name'], PATHINFO_EXTENSION));
+                                $icon = match($extension) {
+                                    'pdf' => 'fa-file-pdf',
+                                    'doc', 'docx' => 'fa-file-word',
+                                    'xls', 'xlsx' => 'fa-file-excel',
+                                    'ppt', 'pptx' => 'fa-file-powerpoint',
+                                    'zip', 'rar', '7z' => 'fa-file-archive',
+                                    'txt' => 'fa-file-alt',
+                                    default => 'fa-file',
+                                };
+                            @endphp
+                            <i class="fas {{ $icon }} text-[#456882] text-xl"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="font-medium text-gray-800 dark:text-white truncate">{{ $attachment['name'] }}</div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                <span class="uppercase">{{ $extension }}</span> • {{ number_format($attachment['size'] / 1024, 2) }} KB
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3 ml-4">
+                            <a href="{{ $fileUrl }}" 
+                               target="_blank"
+                               class="p-2 text-gray-400 hover:text-[#456882] transition-colors"
+                               title="Preview">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                            <a href="{{ $fileUrl }}" 
+                               download
+                               class="p-2 text-gray-400 hover:text-[#456882] transition-colors"
+                               title="Download">
+                                <i class="fas fa-download"></i>
+                            </a>
+                        </div>
+                    </a>
+                @endif
+            @endforeach
+        </div>
+    </div>
+@endif
                     </div>
                     
                     <!-- Client Information -->
