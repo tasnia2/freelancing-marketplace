@@ -1,4 +1,4 @@
-@extends('layouts.guest')
+its not working where to change it make it customize for input text to be black @extends('layouts.guest')
 
 @section('title', 'Login - Work Nest')
 
@@ -17,7 +17,7 @@
         <div class="mb-5">
             <label class="block text-sm font-medium text-white mb-2">Email Address</label>
             <input type="email" name="email" required autofocus
-                   class="w-full px-4 py-3 bg-white border border-gray-700 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                   class="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                    placeholder="you@example.com"
                    value="{{ old('email') }}">
             @error('email')
@@ -34,7 +34,7 @@
                 </a>
             </div>
             <input type="password" name="password" required
-                   class="w-full px-4 py-3 bg-white border border-gray-700 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                   class="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                    placeholder="••••••••">
             @error('password')
                 <p class="mt-2 text-sm text-red-400">{{ $message }}</p>
