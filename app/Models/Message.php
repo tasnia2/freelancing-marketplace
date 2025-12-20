@@ -63,16 +63,16 @@ class Message extends Model
         return $query->where('read', false);
     }
 
-    public function scopeBetweenUsers($query, $user1Id, $user2Id)
-    {
-        return $query->where(function($q) use ($user1Id, $user2Id) {
-            $q->where('sender_id', $user1Id)
-              ->where('receiver_id', $user2Id);
-        })->orWhere(function($q) use ($user1Id, $user2Id) {
-            $q->where('sender_id', $user2Id)
-              ->where('receiver_id', $user1Id);
-        });
-    }
+    // public function scopeBetweenUsers($query, $user1Id, $user2Id)
+    // {
+    //     return $query->where(function($q) use ($user1Id, $user2Id) {
+    //         $q->where('sender_id', $user1Id)
+    //           ->where('receiver_id', $user2Id);
+    //     })->orWhere(function($q) use ($user1Id, $user2Id) {
+    //         $q->where('sender_id', $user2Id)
+    //           ->where('receiver_id', $user1Id);
+    //     });
+    // }
 
     public function scopeForJob($query, $jobId)
     {
